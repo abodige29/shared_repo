@@ -10,7 +10,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    		               Party-Tier2         08/03           First Version Tier-2 
+    		               Party-Tier2         15/03           First Version Tier-2 
     ------------------------------------------------------------------------------------------------------------------
 */ 
 
@@ -81,7 +81,7 @@ SOURCE_DELETE_IND,
 PARTY_TYPE_CDE                                               -- rownumber to remove row level duplicates
 FROM(
 SELECT 
-UUID_GEN(DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID)::UUID AS DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,
+UUID_GEN(DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID)::UUID AS DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID, --UUID GENERATED ON DECRYPTED VALUES
 PARTY_ID,
 FIRST_NM,
 NULL AS MIDDLE_NM,
@@ -111,7 +111,7 @@ ROW_NUMBER() OVER (PARTITION BY DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,GOV
 PARTY_ID,FIRST_NM, LAST_NM, FULL_NM, BIRTH_DT,GENDER_CDE,SENSITIVE_PARTY_IND , SOURCE_GENDER_CDE ORDER BY BEGIN_DT,END_DT) AS RNK
 FROM (
 SELECT 
-VOLTAGEPROTECT(CLEAN_STRING(VOLTAGEACCESS(SYS_PRTY_ID,'sorparty')),'sorparty') AS DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,
+CLEAN_STRING(VOLTAGEACCESS(SYS_PRTY_ID,'sorparty')) AS DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,
 VOLTAGEPROTECT(CLEAN_STRING(VOLTAGEACCESS(SYS_PRTY_ID,'sorparty')),'sorparty') AS PARTY_ID,
 VOLTAGEPROTECT(CLEAN_STRING(VOLTAGEACCESS(FRST_NM,'name')),'name')  AS FIRST_NM,
 VOLTAGEPROTECT(CLEAN_STRING(VOLTAGEACCESS(LST_NM,'name')),'name') AS LAST_NM,
@@ -272,7 +272,7 @@ SOURCE_DELETE_IND,
 PARTY_TYPE_CDE                                            -- add rownumber to remove row level duplicates
 FROM (
 SELECT 
-UUID_GEN(PARTY_ID)::UUID AS DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,  
+UUID_GEN(PARTY_ID)::UUID AS DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,  --UUID GENERATED ON DECRYPTED VALUES
 VOLTAGEPROTECT(PARTY_ID,'sorparty') AS PARTY_ID,                                                                          ----- encryption
 VOLTAGEPROTECT(FIRST_NM ,'name') AS FIRST_NM,
 NULL AS MIDDLE_NM,
@@ -453,7 +453,7 @@ SOURCE_DELETE_IND,
 PARTY_TYPE_CDE                                                                -- add rownumber and remove duplicates
 FROM(
 SELECT
-UUID_GEN(PARTY_ID)::UUID AS DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,
+UUID_GEN(PARTY_ID)::UUID AS DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,  --UUID GENERATED ON DECRYPTED VALUES
 VOLTAGEPROTECT(PARTY_ID,'sorparty') AS PARTY_ID,
 VOLTAGEPROTECT(FIRST_NM,'name') AS FIRST_NM,
 NULL AS MIDDLE_NM,
