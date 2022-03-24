@@ -1,101 +1,7 @@
-DROP TABLE IF EXISTS party_dipms_dim_non_mastered_party;
-
-CREATE LOCAL TEMPORARY TABLE party_dipms_dim_non_mastered_party
-(
-dim_non_mastered_party_natural_key_hash_uuid uuid NOT NULL,
-party_id varchar(200) NOT NULL,
-first_nm varchar(100),
-last_nm varchar(100),
-full_nm varchar(300),
-birth_dt varchar(50),
-gender_cde varchar(50),
-middle_nm varchar(100),
-government_id varchar(50),
-marital_status_cde varchar(50),
-source_gender_cde varchar(50),
-sensitive_party_ind boolean,
-source_marital_status_cde varchar(50),
-agency_region_desc varchar(200),
-source_login_id varchar(50),
-party_type_cde varchar(50),
-begin_dt date NOT NULL DEFAULT '0001-01-01'::date,
-begin_dtm timestamp(6) NOT NULL,
-row_process_dtm timestamp(6) NOT NULL,
-audit_id int NOT NULL DEFAULT 0,
-logical_delete_ind boolean NOT NULL DEFAULT false,
-check_sum uuid NOT NULL,
-current_row_ind boolean NOT NULL DEFAULT true,
-end_dt date NOT NULL DEFAULT '9999-12-31'::date,
-end_dtm timestamp(6) NOT NULL,
-source_system_id varchar(50) NOT NULL,
-restricted_row_ind boolean NOT NULL DEFAULT false,
-row_sid INT ,
-update_audit_id int NOT NULL DEFAULT 0,
-source_delete_ind boolean NOT NULL,
-source_party_created_dtm timestamp(6),
-party_sub_type_cde varchar(50),
-mm_employee_ind boolean,
-death_dt date,
-deceased_ind boolean,
-group_nbr varchar(50),
-sub_group_nbr varchar(50),
-group_ipn_id varchar(50),
-group_type_cde varchar(50),
-group_type_effective_dt date,
-discount_pct numeric(9,6),
-bill_at_issue_ind boolean,
-plan_type_cde varchar(50),
-maximum_benefit_paid_ind boolean,
-buy_sell_group_type_cde varchar(50),
-long_term_care_ind boolean,
-default_dividend_pct numeric(9,6),
-guaranteed_standard_issue_ind boolean,
-employer_paid_pct numeric(9,6),
-employer_paid_discount_pct numeric(9,6),
-preexisting_condition_limitation_id varchar(50),
-due_dt_alignment_ind boolean,
-servicing_agency_id varchar(50),
-source_market_cde varchar(50),
-market_cde varchar(50),
-market_cde_effective_dt date,
-source_sales_category_cde varchar(50),
-sales_category_cde varchar(50),
-sales_category_effective_dt date,
-default_dividend_pct_effective_dt date,
-underwriting_processor_id varchar(50),
-parent_group_nr_id varchar(50),
-erisa_plan_cde varchar(50),
-erisa_plan_effective_dt date,
-employer_paid_effective_dt date,
-employer_paid_discount_effective_dt date,
-salary_deduction_ind boolean,
-mgi_ind boolean,
-endr_ind boolean,
-endr_dt date,
-servicing_agent_id varchar(50),
-source_billing_frequency_cde varchar(50),
-billing_frequency_cde varchar(50),
-source_bill_type_cde varchar(50),
-billing_type_cde varchar(50),
-level_pct numeric(9,6),
-crossover_year_txt varchar(25),
-employee_receive_dividend_ind boolean,
-employee_receive_premium_ind boolean,
-sic_cde varchar(25),
-group_class_cde varchar(50),
-begin_billing_dt date,
-second_due_day_txt varchar(25),
-CONSTRAINT C_PRIMARY PRIMARY KEY (row_sid) DISABLED
-);
-
-
 DROP TABLE IF EXISTS PRE_WORK1;
 
 CREATE LOCAL TEMPORARY TABLE PRE_WORK1 ON COMMIT PRESERVE ROWS  AS 
-SELECT * FROM PARTY_DIPMS_DIM_NON_MASTERED_PARTY WHERE 1<>1;
-
-
-
+SELECT * FROM EDW_WORK.PARTY_DIPMS_DIM_NON_MASTERED_PARTY WHERE 1<>1;
 
 INSERT  /*DIRECT*/ INTO PRE_WORK1(
 DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,
@@ -110,7 +16,6 @@ SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
 SOURCE_MARITAL_STATUS_CDE,
-SOURCE_LOGIN_ID,
 GOVERNMENT_ID,
 BEGIN_DT,
 BEGIN_DTM,
@@ -134,21 +39,20 @@ FIRST_NM,
 MIDDLE_NM,
 LAST_NM,
 FULL_NM,
-BIRTH_DT,
+BIRTH_DT::date,
 GENDER_CDE,
 SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
 SOURCE_MARITAL_STATUS_CDE,
-SOURCE_LOGIN_ID,
 GOVERNMENT_ID,
 BEGIN_DT,
 BEGIN_DTM,
 ROW_PROCESS_DTM,
 AUDIT_ID,
 LOGICAL_DELETE_IND,
-UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,FULL_NM,BIRTH_DT,GENDER_CDE,MARITAL_STATUS_CDE,SOURCE_LOGIN_ID,
-GOVERNMENT_ID,SENSITIVE_PARTY_IND,SOURCE_GENDER_CDE,SOURCE_MARITAL_STATUS_CDE)::UUID AS CHECK_SUM,
+UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,FULL_NM,BIRTH_DT,GENDER_CDE,SENSITIVE_PARTY_IND,SOURCE_GENDER_CDE,
+MARITAL_STATUS_CDE,SOURCE_MARITAL_STATUS_CDE,SOURCE_LOGIN_ID,GOVERNMENT_ID,PARTY_TYPE_CDE)::UUID AS CHECK_SUM,
 CURRENT_ROW_IND,
 END_DT,
 END_DTM,
@@ -224,7 +128,6 @@ SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
 SOURCE_MARITAL_STATUS_CDE,
-SOURCE_LOGIN_ID,
 GOVERNMENT_ID,
 BEGIN_DT,
 BEGIN_DTM,
@@ -248,21 +151,20 @@ FIRST_NM,
 MIDDLE_NM,
 LAST_NM,
 FULL_NM,
-BIRTH_DT,
+BIRTH_DT::date,
 GENDER_CDE,
 SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
 SOURCE_MARITAL_STATUS_CDE,
-SOURCE_LOGIN_ID,
 GOVERNMENT_ID,
 BEGIN_DT,
 BEGIN_DTM,
 ROW_PROCESS_DTM,
 AUDIT_ID,
 LOGICAL_DELETE_IND,
-UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,FULL_NM,BIRTH_DT,GENDER_CDE,MARITAL_STATUS_CDE,SOURCE_LOGIN_ID,
-GOVERNMENT_ID,SENSITIVE_PARTY_IND,SOURCE_GENDER_CDE,SOURCE_MARITAL_STATUS_CDE)::UUID AS CHECK_SUM,
+UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,FULL_NM,BIRTH_DT,GENDER_CDE,SENSITIVE_PARTY_IND,SOURCE_GENDER_CDE,
+MARITAL_STATUS_CDE,SOURCE_MARITAL_STATUS_CDE,SOURCE_LOGIN_ID,GOVERNMENT_ID,PARTY_TYPE_CDE)::UUID AS CHECK_SUM,
 CURRENT_ROW_IND,
 END_DT,
 END_DTM,
@@ -339,7 +241,6 @@ SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
 SOURCE_MARITAL_STATUS_CDE,
-SOURCE_LOGIN_ID,
 GOVERNMENT_ID,
 BEGIN_DT,
 BEGIN_DTM,
@@ -369,15 +270,14 @@ SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
 SOURCE_MARITAL_STATUS_CDE,
-SOURCE_LOGIN_ID,
 GOVERNMENT_ID,
 BEGIN_DT,
 BEGIN_DTM,
 ROW_PROCESS_DTM,
 AUDIT_ID,
 LOGICAL_DELETE_IND,
-UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,FULL_NM,BIRTH_DT,GENDER_CDE,MARITAL_STATUS_CDE,SOURCE_LOGIN_ID,
-GOVERNMENT_ID,SENSITIVE_PARTY_IND,SOURCE_GENDER_CDE,SOURCE_MARITAL_STATUS_CDE)::UUID AS CHECK_SUM,
+UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,FULL_NM,BIRTH_DT,GENDER_CDE,SENSITIVE_PARTY_IND,SOURCE_GENDER_CDE,
+MARITAL_STATUS_CDE,SOURCE_MARITAL_STATUS_CDE,SOURCE_LOGIN_ID,GOVERNMENT_ID,PARTY_TYPE_CDE)::UUID AS CHECK_SUM,
 CURRENT_ROW_IND,
 END_DT,
 END_DTM,
@@ -447,9 +347,6 @@ GENDER_CDE,
 SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
-SOURCE_MARITAL_STATUS_CDE,
-SOURCE_LOGIN_ID,
-GOVERNMENT_ID,
 BEGIN_DT,
 BEGIN_DTM,
 ROW_PROCESS_DTM,
@@ -472,21 +369,18 @@ FIRST_NM,
 MIDDLE_NM,
 LAST_NM,
 FULL_NM,
-BIRTH_DT,
+BIRTH_DT::date,
 GENDER_CDE,
 SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
-SOURCE_MARITAL_STATUS_CDE,
-SOURCE_LOGIN_ID,
-GOVERNMENT_ID,
 BEGIN_DT,
 BEGIN_DTM,
 ROW_PROCESS_DTM,
 AUDIT_ID,
 LOGICAL_DELETE_IND,
-UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,FULL_NM,BIRTH_DT,GENDER_CDE,MARITAL_STATUS_CDE,SOURCE_LOGIN_ID,
-GOVERNMENT_ID,SENSITIVE_PARTY_IND,SOURCE_GENDER_CDE,SOURCE_MARITAL_STATUS_CDE)::UUID AS CHECK_SUM,
+UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,FULL_NM,BIRTH_DT,GENDER_CDE,SENSITIVE_PARTY_IND,SOURCE_GENDER_CDE,
+MARITAL_STATUS_CDE,SOURCE_MARITAL_STATUS_CDE,SOURCE_LOGIN_ID,GOVERNMENT_ID,PARTY_TYPE_CDE)::UUID AS CHECK_SUM,
 CURRENT_ROW_IND,
 END_DT,
 END_DTM,
@@ -554,9 +448,7 @@ GENDER_CDE,
 SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
-SOURCE_MARITAL_STATUS_CDE,
 SOURCE_LOGIN_ID,
-GOVERNMENT_ID,
 BEGIN_DT,
 BEGIN_DTM,
 ROW_PROCESS_DTM,
@@ -579,21 +471,19 @@ FIRST_NM,
 MIDDLE_NM,
 LAST_NM,
 FULL_NM,
-BIRTH_DT,
+BIRTH_DT::DATE,
 GENDER_CDE,
 SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
-SOURCE_MARITAL_STATUS_CDE,
 SOURCE_LOGIN_ID,
-GOVERNMENT_ID,
 BEGIN_DT,
 BEGIN_DTM,
 ROW_PROCESS_DTM,
 AUDIT_ID,
 LOGICAL_DELETE_IND,
-UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,FULL_NM,BIRTH_DT,GENDER_CDE,MARITAL_STATUS_CDE,SOURCE_LOGIN_ID,
-GOVERNMENT_ID,SENSITIVE_PARTY_IND,SOURCE_GENDER_CDE,SOURCE_MARITAL_STATUS_CDE)::UUID AS CHECK_SUM,
+UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,FULL_NM,BIRTH_DT,GENDER_CDE,SENSITIVE_PARTY_IND,SOURCE_GENDER_CDE,
+MARITAL_STATUS_CDE,SOURCE_MARITAL_STATUS_CDE,SOURCE_LOGIN_ID,GOVERNMENT_ID,PARTY_TYPE_CDE)::UUID AS CHECK_SUM,
 CURRENT_ROW_IND,
 END_DT,
 END_DTM,
@@ -731,7 +621,7 @@ FIRST_NM,
 MIDDLE_NM,
 LAST_NM,
 FULL_NM,
-BIRTH_DT,
+BIRTH_DT::DATE,
 GENDER_CDE,
 SENSITIVE_PARTY_ID,
 SOURCE_GENDER_CDE,
@@ -1014,10 +904,10 @@ CLEAN_STRING(VOLTAGEACCESS(PECL_IDENT,'account_char')) AS PREEXISTING_CONDITION_
 CASE WHEN DUE_DT_ALGN_IND = 'Y' THEN TRUE WHEN DUE_DT_ALGN_IND = 'N' THEN FALSE END AS DUE_DT_ALIGNMENT_IND,
 CLEAN_STRING(VOLTAGEACCESS(SVCNG_AGY,'sorparty')) AS SERVICING_AGENCY_ID,
 CLEAN_STRING(mkt_cde) AS SOURCE_MARKET_CDE,
-mkt_cde AS market_cde,--COALESCE(clean_string(TRNSLT_FLD_VAL), 'Unk')
+COALESCE(clean_string(SDT1.TRNSLT_FLD_VAL), 'Unk') AS market_cde,--COALESCE(clean_string(TRNSLT_FLD_VAL), 'Unk')
 mkt_cde_eff_dt::date AS MARKET_CDE_EFFECTIVE_DT,
-CLEAN_STRING(SALES_CTG_CDE) AS SOURCE_SALES_CATEGORY_CDE,
-sales_ctg_cde AS sales_category_cde,--COALESCE(clean_string(TRNSLT_FLD_VAL), 'Unk')
+CLEAN_STRING(sales_ctg_cde) AS SOURCE_SALES_CATEGORY_CDE,
+COALESCE(clean_string(SDT2.TRNSLT_FLD_VAL), 'Unk') AS sales_category_cde,--COALESCE(clean_string(TRNSLT_FLD_VAL), 'Unk')
 SALES_CTG_EFF_DT::date AS SALES_CATEGORY_EFFECTIVE_DT,
 DFLT_DIVD_PCT_EFF_DT::date AS DEFAULT_DIVIDEND_PCT_EFFECTIVE_DT,
 CLEAN_STRING(UND_PRCR_ID) AS UNDERWRITING_PROCESSOR_ID,
@@ -1032,9 +922,9 @@ CASE WHEN ENDR_IND = 'Y' THEN TRUE WHEN ENDR_IND = 'N' THEN FALSE END AS ENDR_IN
 ENDR_DT::DATE  AS ENDR_DT,
 CLEAN_STRING(VOLTAGEACCESS(SVC_AGT,'sorparty')) AS SERVICING_AGENT_ID,
 CLEAN_STRING(BILL_MODE_CDE) AS SOURCE_BILLING_FREQUENCY_CDE,
-bill_mode_cde  AS BILLING_FREQUENCY_CDE,--COALESCE(CLEAN_STRING(TRNSLT_FLD_VAL), 'Unk')
+COALESCE(clean_string(SDT3.TRNSLT_FLD_VAL), 'Unk')  AS BILLING_FREQUENCY_CDE,--COALESCE(CLEAN_STRING(TRNSLT_FLD_VAL), 'Unk')
 CLEAN_STRING(BILL_TYP_CDE) AS source_bill_type_cde,
-bill_typ_cde AS BILLING_TYPE_CDE,--COALESCE(CLEAN_STRING(TRNSLT_FLD_VAL), 'Unk')
+COALESCE(clean_string(SDT4.TRNSLT_FLD_VAL), 'Unk') AS BILLING_TYPE_CDE,--COALESCE(CLEAN_STRING(TRNSLT_FLD_VAL), 'Unk')
 LEVEL_PCT::numeric(9,6) AS LEVEL_PCT,
 CLEAN_STRING(CROSSOVER_YR) AS CROSSOVER_YEAR_TXT,
 CASE WHEN emp_receive_divd = 'Y' THEN TRUE WHEN emp_receive_divd = 'N' THEN FALSE END AS EMPLOYEE_RECEIVE_DIVIDEND_IND,
@@ -1045,10 +935,31 @@ BEG_BILL_DT::DATE AS BEGIN_BILLING_DT,
 CLEAN_STRING(SCND_DUE_DY) AS SECOND_DUE_DAY_TXT,
 FALSE AS SOURCE_DELETE_IND,
 'Dipms_'||GROUP_NBR AS PARTY_ID
-FROM EXT_EDAP_STAGING.DI_DIPMS_EDW_DIPMS_GROUP_INFO
+FROM EXT_EDAP_STAGING.DI_DIPMS_EDW_DIPMS_GROUP_INFO SRC
+LEFT JOIN 
+(SELECT DISTINCT UPPER(SRC_FLD_VAL) AS SRC_FLD_VAL,CLEAN_STRING(TRNSLT_FLD_VAL) AS TRNSLT_FLD_VAL
+FROM EDW_REF.SRC_DATA_TRNSLT WHERE UPPER(BTRIM(SRC_CDE)) = 'DIPMS' AND
+UPPER(BTRIM(SRC_FLD_NM)) = 'INTERNAL_VALUE' AND  UPPER(BTRIM(TRNSLT_FLD_NM)) = 'MARKETING CAMPAIGN CATEGORY')SDT1
+ON CLEAN_STRING(SRC.MKT_CDE)=SDT1.TRNSLT_FLD_VAL
+LEFT JOIN 
+(SELECT DISTINCT UPPER(SRC_FLD_VAL) AS SRC_FLD_VAL,CLEAN_STRING(TRNSLT_FLD_VAL) AS TRNSLT_FLD_VAL
+FROM EDW_REF.SRC_DATA_TRNSLT WHERE UPPER(BTRIM(SRC_CDE)) = 'DIPMS' AND UPPER(BTRIM(SRC_FLD_NM)) = 'SALES_CTG_CDE ' 
+AND UPPER(BTRIM(TRNSLT_FLD_NM)) = 'MARKET CATEGORY')SDT2
+ON CLEAN_STRING(SRC.SALES_CTG_CDE)=SDT2.TRNSLT_FLD_VAL
+LEFT JOIN 
+(SELECT DISTINCT UPPER(SRC_FLD_VAL) AS SRC_FLD_VAL,CLEAN_STRING(TRNSLT_FLD_VAL) AS TRNSLT_FLD_VAL
+FROM EDW_REF.SRC_DATA_TRNSLT WHERE UPPER(BTRIM(SRC_CDE)) = 'DIPMS' AND UPPER(BTRIM(SRC_FLD_NM)) = 'VALID_CHOICE 'AND 
+UPPER(BTRIM(TRNSLT_FLD_NM)) = 'BILLING FREQUENCY')SDT3
+ON CLEAN_STRING(SRC.BILL_MODE_CDE)=SDT3.TRNSLT_FLD_VAL
+LEFT JOIN 
+(SELECT DISTINCT UPPER(SRC_FLD_VAL) AS SRC_FLD_VAL,CLEAN_STRING(TRNSLT_FLD_VAL) AS TRNSLT_FLD_VAL
+FROM EDW_REF.SRC_DATA_TRNSLT WHERE UPPER(BTRIM(SRC_CDE)) = 'DIPMS'AND UPPER(BTRIM(SRC_FLD_NM)) = 'BILLING_METHOD ' AND  
+UPPER(BTRIM(TRNSLT_FLD_NM)) = 'BILLING METHOD')SDT4
+ON CLEAN_STRING(SRC.BILL_TYP_CDE)=SDT4.TRNSLT_FLD_VAL
 )Q_1
 )Q_2
 WHERE RNK=1;
+
 
 DROP TABLE IF EXISTS PRE_WORK2;
 
@@ -1059,7 +970,7 @@ FROM PRE_WORK1 ;
 DROP TABLE PRE_WORK;
 
 CREATE LOCAL TEMPORARY TABLE PRE_WORK ON COMMIT PRESERVE ROWS AS 
-SELECT * FROM PRE_WORK1 WHERE 1<>1;
+SELECT * FROM EDW_WORK.party_dipms_dim_non_mastered_party WHERE 1<>1;
 
 INSERT /*DIRECT*/ INTO PRE_WORK(
 DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,
@@ -1156,9 +1067,11 @@ A.ROW_PROCESS_DTM,
 A.AUDIT_ID,
 A.LOGICAL_DELETE_IND,
 A.CHECK_SUM,
-A.CURRENT_ROW_IND,
-A.END_DT,
-A.END_DTM,
+CASE WHEN A.RW_NUM<B.RW_NUM AND A.RW_NUM=B.RW_NUM-1 THEN FALSE ELSE A.CURRENT_ROW_IND END AS CURRENT_ROW_IND,
+CASE WHEN A.RW_NUM<B.RW_NUM AND A.RW_NUM=B.RW_NUM-1 AND A.END_DT>B.BEGIN_DT - INTERVAL '1' DAY THEN 
+B.BEGIN_DT- INTERVAL '1' DAY ELSE A.END_DT END AS END_DT,
+CASE WHEN A.RW_NUM<B.RW_NUM AND A.RW_NUM=B.RW_NUM-1 AND A.END_DTM>B.BEGIN_DTM- INTERVAL '1' SECOND THEN               -- DTM column??
+B.BEGIN_DTM-INTERVAL '1' SECOND ELSE A.END_DTM END AS END_DTM,
 A.SOURCE_SYSTEM_ID,
 A.RESTRICTED_ROW_IND,
 A.UPDATE_AUDIT_ID,
@@ -1218,11 +1131,23 @@ PRE_WORK2 B
 ON A.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID=B.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID
 AND A.RW_NUM=B.RW_NUM-1;
 
+SELECT * FROM PRE_WORK;
+
+DROP TABLE IF EXISTS TARGET;
+
+CREATE LOCAL TEMPORARY TABLE TARGET ON COMMIT PRESERVE ROWS AS 
+SELECT * FROM EDW_WORK.PARTY_DIPMS_DIM_NON_MASTERED_PARTY WHERE 1<>1;
+
+INSERT INTO TARGET (dim_non_mastered_party_natural_key_hash_uuid,party_id,first_nm,last_nm,full_nm,birth_dt,gender_cde,middle_nm,government_id,marital_status_cde,source_gender_cde,sensitive_party_ind,source_marital_status_cde,agency_region_desc,source_login_id,party_type_cde,begin_dt,begin_dtm,row_process_dtm,audit_id,logical_delete_ind,check_sum,current_row_ind,end_dt,end_dtm,source_system_id,restricted_row_ind,row_sid,update_audit_id,source_delete_ind,source_party_created_dtm,party_sub_type_cde,mm_employee_ind,death_dt,deceased_ind,group_nbr,sub_group_nbr,group_ipn_id,group_type_cde,group_type_effective_dt,discount_pct,bill_at_issue_ind,plan_type_cde,maximum_benefit_paid_ind,buy_sell_group_type_cde,long_term_care_ind,default_dividend_pct,guaranteed_standard_issue_ind,employer_paid_pct,employer_paid_discount_pct,preexisting_condition_limitation_id,due_dt_alignment_ind,servicing_agency_id,source_market_cde,market_cde,market_cde_effective_dt,source_sales_category_cde,sales_category_cde,sales_category_effective_dt,default_dividend_pct_effective_dt,underwriting_processor_id,parent_group_nr_id,erisa_plan_cde,erisa_plan_effective_dt,employer_paid_effective_dt,employer_paid_discount_effective_dt,salary_deduction_ind,mgi_ind,endr_ind,endr_dt,servicing_agent_id,source_billing_frequency_cde,billing_frequency_cde,source_bill_type_cde,billing_type_cde,level_pct,crossover_year_txt,employee_receive_dividend_ind,employee_receive_premium_ind,sic_cde,group_class_cde,begin_billing_dt,second_due_day_txt) VALUES ('000011db-4cd4-49bd-8e2a-13b3ccb61f14','BZTER5vNhGqs','ziRjl','yLyGZYi',NULL,'1931-06-30','M',NULL,NULL,'Unk','M',false,NULL,NULL,NULL,'I','2015-12-10','2015-12-10 12:04:06.740','2022-03-24 04:19:58.963',-1,false,'99b25a5a-3dd0-0f17-59e1-00647a7d1d0f',true,'9999-12-31','9999-12-31 00:00:00.000','342',false,NULL,-1,false,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+
+INSERT INTO TARGET (dim_non_mastered_party_natural_key_hash_uuid,party_id,first_nm,last_nm,full_nm,birth_dt,gender_cde,middle_nm,government_id,marital_status_cde,source_gender_cde,sensitive_party_ind,source_marital_status_cde,agency_region_desc,source_login_id,party_type_cde,begin_dt,begin_dtm,row_process_dtm,audit_id,logical_delete_ind,check_sum,current_row_ind,end_dt,end_dtm,source_system_id,restricted_row_ind,row_sid,update_audit_id,source_delete_ind,source_party_created_dtm,party_sub_type_cde,mm_employee_ind,death_dt,deceased_ind,group_nbr,sub_group_nbr,group_ipn_id,group_type_cde,group_type_effective_dt,discount_pct,bill_at_issue_ind,plan_type_cde,maximum_benefit_paid_ind,buy_sell_group_type_cde,long_term_care_ind,default_dividend_pct,guaranteed_standard_issue_ind,employer_paid_pct,employer_paid_discount_pct,preexisting_condition_limitation_id,due_dt_alignment_ind,servicing_agency_id,source_market_cde,market_cde,market_cde_effective_dt,source_sales_category_cde,sales_category_cde,sales_category_effective_dt,default_dividend_pct_effective_dt,underwriting_processor_id,parent_group_nr_id,erisa_plan_cde,erisa_plan_effective_dt,employer_paid_effective_dt,employer_paid_discount_effective_dt,salary_deduction_ind,mgi_ind,endr_ind,endr_dt,servicing_agent_id,source_billing_frequency_cde,billing_frequency_cde,source_bill_type_cde,billing_type_cde,level_pct,crossover_year_txt,employee_receive_dividend_ind,employee_receive_premium_ind,sic_cde,group_class_cde,begin_billing_dt,second_due_day_txt) VALUES ('0001d714-5299-b076-5348-906ffcde0838','ifvwKsU3v80HjxiADTURs','ekt','WpC',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'I','2015-12-07','2015-12-07 00:09:34.446','2022-03-24 04:58:22.393',-1,false,'b034c335-080d-f84f-bef4-e85e5d348836',true,'9999-12-31','9999-12-31 00:00:00.000','342',false,NULL,-1,false,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 
 /* WORK TABLE - INSERTS 
  * 
  * this script is used to load the records that don't have a record in target
  * */
+
+TRUNCATE TABLE EDW_WORK.PARTY_DIPMS_DIM_NON_MASTERED_PARTY;
 
 INSERT /*DIRECT*/ INTO edw_work.party_dipms_dim_non_mastered_party(
 DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,
@@ -1378,9 +1303,9 @@ SRC.SECOND_DUE_DAY_TXT
 FROM 
 PRE_WORK SRC 
 LEFT JOIN 
-EDW.DIM_NON_MASTERD_PARTY TGT ON
+TARGET TGT ON
 SRC.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID=TGT.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID
-WHERE TGT.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID=NULL;
+WHERE TGT.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID IS NULL;
 
 /* WORK TABLE - UPDATE TGT RECORD
  * 
@@ -1542,7 +1467,7 @@ TGT.BEGIN_BILLING_DT,
 TGT.SECOND_DUE_DAY_TXT
 FROM PRE_WORK SRC
 LEFT JOIN 
-EDW.DIM_NON_MASTERD_PARTY TGT
+TARGET TGT
 ON SRC.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID=TGT.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID
 AND TGT.CURRENT_ROW_IND = TRUE
 WHERE (SRC.CHECK_SUM <> TGT.CHECK_SUM);
@@ -1705,14 +1630,14 @@ SRC.SECOND_DUE_DAY_TXT
 FROM 
 PRE_WORK SRC
 LEFT JOIN 
-EDW.DIM_NON_MASTERD_PARTY TGT
+TARGET TGT
 ON SRC.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID=TGT.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID
 AND TGT.CURRENT_ROW_IND = TRUE
-WHERE (--handle when there isn't a current record in target but there are historical records and a delta coming through
+WHERE (--handle when there is a current target record and either the check_sum has changed or record is being logically deleted.
 TGT.ROW_SID IS NULL 
 AND 
-SRC.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID IN (SELECT DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID FROM
-EDW.DIM_NON_MASTERD_PARTY TGT1)
+SRC.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID IN (SELECT DISTINCT DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID FROM
+TARGET TGT1)
 )
 OR 
 (TGT.ROW_SID IS NOT NULL AND SRC.CHECK_SUM<>TGT.CHECK_SUM);
