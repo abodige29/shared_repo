@@ -1,3 +1,18 @@
+/*
+    FileName: party_dipms_dim_non_mastered_party.sql
+    Author: mma2156
+    SUBJECT AREA : Party
+    Table_Name :dim_non_mastered_party
+    SOURCE: dipms
+    Teradata Source Code: 77                       
+    Create Date:2022-03-07
+        
+    ===============================================================================================================
+    Version/JIRA Story#     Created By     Last_Modified_Date   Description
+    ---------------------------------------------------------------------------------------------------------------
+    		               Party-Tier2         29/03           First Version Tier-2 
+    ------------------------------------------------------------------------------------------------------------------
+*/ 
 DROP TABLE IF EXISTS PRE_WORK1;
 
 CREATE LOCAL TEMPORARY TABLE PRE_WORK1 ON COMMIT PRESERVE ROWS  AS 
@@ -1641,3 +1656,4 @@ TARGET TGT1)
 )
 OR 
 (TGT.ROW_SID IS NOT NULL  AND SRC.CHECK_SUM<>TGT.CHECK_SUM);
+--
