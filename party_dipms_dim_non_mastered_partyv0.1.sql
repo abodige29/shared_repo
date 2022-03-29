@@ -13,6 +13,7 @@
     		               Party-Tier2         29/03           First Version Tier-2 
     ------------------------------------------------------------------------------------------------------------------
 */ 
+--
 
 SELECT ANALYZE_STATISTICS('PROD_NBR_VW_TERSUN.NB_APPL_PRTY_VW');
 
