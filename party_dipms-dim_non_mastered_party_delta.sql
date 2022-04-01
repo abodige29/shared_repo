@@ -1166,7 +1166,7 @@ INSERT INTO EDW.DIM_NON_MASTERED_PARTY (dim_non_mastered_party_natural_key_hash_
 
 /* WORK TABLE - INSERTS 
  * 
- * this script is used to load the records that don't have a record in EDW.DIM_NON_MASTERED_PARTY
+ * this script is used to load the records that don't have a record in target
  * */
 
 
@@ -1334,7 +1334,7 @@ COMMIT;
 /* WORK TABLE - UPDATE TGT RECORD
  * 
  * This script finds records where the new record from the source has a different check_sum than the current EDW.DIM_NON_MASTERED_PARTY record or the record is being ended/deleted. 
- * The current record in the EDW.DIM_NON_MASTERED_PARTY will be ended since the source record will be inserted in the next step.
+ * The current record in the target will be ended since the source record will be inserted in the next step.
  * */
 
 
@@ -1497,7 +1497,7 @@ AND TGT.CURRENT_ROW_IND = TRUE
 WHERE (SRC.CHECK_SUM <> TGT.CHECK_SUM);
 
 COMMIT;
-/* WORK TABLE - UPDATE WHERE RECORD ALREADY EXISTS IN EDW.DIM_NON_MASTERED_PARTY 
+/* WORK TABLE - UPDATE WHERE RECORD ALREADY EXISTS IN target 
  *  
  * */
 INSERT /*DIRECT*/ INTO EDW_WORK.PARTY_DIPMS_DIM_NON_MASTERED_PARTY1(
@@ -1657,7 +1657,7 @@ LEFT JOIN
 EDW.DIM_NON_MASTERED_PARTY TGT
 ON SRC.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID=TGT.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID
 AND TGT.CURRENT_ROW_IND = TRUE
-WHERE (--handle when there is a current EDW.DIM_NON_MASTERED_PARTY record and either the check_sum has changed or record is being logically deleted.
+WHERE (--handle when there is a current target record and either the check_sum has changed or record is being logically deleted.
 TGT.ROW_SID IS NULL 
 AND 
 SRC.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID IN (SELECT DISTINCT DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID FROM
