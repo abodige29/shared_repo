@@ -10,7 +10,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    		               Party-Tier2         01/04           First Version Tier-2 
+    		               Party-Tier2         04/04           First Version Tier-2 
     ------------------------------------------------------------------------------------------------------------------
 */ 
 
@@ -108,7 +108,7 @@ SOURCE_DELETE_IND,
 'I' AS PARTY_TYPE_CDE,
 ROW_NUMBER() OVER(PARTITION BY PARTY_ID,FIRST_NM,LAST_NM,FULL_NM,BIRTH_DT,
 GENDER_CDE,SENSITIVE_PARTY_IND,SOURCE_GENDER_CDE,MARITAL_STATUS_CDE,SOURCE_MARITAL_STATUS_CDE,GOVERNMENT_ID,
-SOURCE_DELETE_IND ORDER BY BEGIN_DTM,END_DTM DESC) AS RNK FROM (
+SOURCE_DELETE_IND ORDER BY BEGIN_DTM DESC,END_DTM DESC) AS RNK FROM (
 SELECT
 CLEAN_STRING(VOLTAGEACCESS(PARTY_ID,'sorparty')) AS PARTY_ID,
 CLEAN_STRING(VOLTAGEACCESS(FIRSTNAME,'name')) AS FIRST_NM,
@@ -222,7 +222,7 @@ SOURCE_DELETE_IND,
 'I' AS PARTY_TYPE_CDE,
 ROW_NUMBER() OVER(PARTITION BY PARTY_ID,FIRST_NM,LAST_NM,FULL_NM,BIRTH_DT,
 GENDER_CDE,SENSITIVE_PARTY_IND,SOURCE_GENDER_CDE,MARITAL_STATUS_CDE,SOURCE_MARITAL_STATUS_CDE,GOVERNMENT_ID,
-SOURCE_DELETE_IND ORDER BY BEGIN_DTM,END_DTM DESC) AS RNK FROM (
+SOURCE_DELETE_IND ORDER BY BEGIN_DTM DESC,END_DTM DESC) AS RNK FROM (
 SELECT
 CLEAN_STRING(VOLTAGEACCESS(PARTY_ID,'sorparty')) AS PARTY_ID,
 CLEAN_STRING(VOLTAGEACCESS(FIRSTNAME,'name')) AS FIRST_NM,
@@ -335,7 +335,7 @@ FALSE AS RESTRICTED_ROW_IND,
 SOURCE_DELETE_IND,
 'I' AS PARTY_TYPE_CDE,
 ROW_NUMBER() OVER(PARTITION BY PARTY_ID,FIRST_NM,LAST_NM,FULL_NM,
-SENSITIVE_PARTY_IND,SOURCE_DELETE_IND ORDER BY BEGIN_DTM,END_DTM DESC) AS RNK FROM (
+SENSITIVE_PARTY_IND,SOURCE_DELETE_IND ORDER BY BEGIN_DTM DESC,END_DTM DESC) AS RNK FROM (
 SELECT
 CLEAN_STRING(VOLTAGEACCESS(PARTY_ID,'sorparty')) AS PARTY_ID,
 CLEAN_STRING(VOLTAGEACCESS(FIRST_NAME,'name')) AS FIRST_NM,
@@ -438,7 +438,7 @@ FALSE AS RESTRICTED_ROW_IND,
 SOURCE_DELETE_IND,
 'I' AS PARTY_TYPE_CDE,
 ROW_NUMBER() OVER(PARTITION BY PARTY_ID,FIRST_NM,LAST_NM,
-SOURCE_DELETE_IND ORDER BY BEGIN_DTM,END_DTM DESC) AS RNK FROM (
+SOURCE_DELETE_IND ORDER BY BEGIN_DTM DESC,END_DTM DESC) AS RNK FROM (
 SELECT
 CLEAN_STRING(VOLTAGEACCESS(FIRST_NAME,'name')) AS FIRST_NM,
 CLEAN_STRING(VOLTAGEACCESS(LAST_NAME,'name')) AS LAST_NM,
@@ -542,7 +542,7 @@ FALSE AS RESTRICTED_ROW_IND,
 SOURCE_DELETE_IND,
 'I' AS PARTY_TYPE_CDE,
 ROW_NUMBER() OVER(PARTITION BY PARTY_ID,FIRST_NM,LAST_NM,SOURCE_LOGIN_ID,
-SOURCE_DELETE_IND ORDER BY BEGIN_DTM,END_DTM DESC) AS RNK FROM (
+SOURCE_DELETE_IND ORDER BY BEGIN_DTM DESC,END_DTM DESC) AS RNK FROM (
 SELECT
 CLEAN_STRING(VOLTAGEACCESS(FIRST_NAME,'name')) AS FIRST_NM,
 CLEAN_STRING(VOLTAGEACCESS(LAST_NAME,'name')) AS LAST_NM,
@@ -900,7 +900,7 @@ sic_cde,
 group_class_cde,
 begin_billing_dt,
 second_due_day_txt
-ORDER BY BEGIN_DTM,END_DTM DESC) AS RNK
+ORDER BY BEGIN_DTM DESC,END_DTM DESC) AS RNK
 FROM (
 SELECT
 CLEAN_STRING(VOLTAGEACCESS(GRP_NM,'name')) AS FULL_NM,
@@ -1006,6 +1006,8 @@ GENDER_CDE,
 SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
+SOURCE_MARITAL_STATUS_CDE, --added missed columns
+GOVERNMENT_ID,
 SOURCE_LOGIN_ID,
 BEGIN_DT,
 BEGIN_DTM,
@@ -1082,6 +1084,8 @@ A.GENDER_CDE,
 A.SENSITIVE_PARTY_IND,
 A.SOURCE_GENDER_CDE,
 A.MARITAL_STATUS_CDE,
+A.SOURCE_MARITAL_STATUS_CDE, --added missed columns
+A.GOVERNMENT_ID,
 A.SOURCE_LOGIN_ID,
 A.BEGIN_DT,
 A.BEGIN_DTM,
@@ -1156,13 +1160,14 @@ AND A.RW_NUM=B.RW_NUM-1;
 COMMIT;
 
 /*
-DROP TABLE IF EXISTS TARGET
+DROP TABLE IF EXISTS TARGET;
+
 CREATE LOCAL TEMPORARY TABLE TARGET ON COMMIT PRESERVE ROWS AS 
 SELECT * FROM EDW_WORK.PARTY_DIPMS_DIM_NON_MASTERED_PARTY WHERE 1<>1;
 
-INSERT INTO EDW.DIM_NON_MASTERED_PARTY (dim_non_mastered_party_natural_key_hash_uuid,party_id,first_nm,last_nm,full_nm,birth_dt,gender_cde,middle_nm,government_id,marital_status_cde,source_gender_cde,sensitive_party_ind,source_marital_status_cde,agency_region_desc,source_login_id,party_type_cde,begin_dt,begin_dtm,row_process_dtm,audit_id,logical_delete_ind,check_sum,current_row_ind,end_dt,end_dtm,source_system_id,restricted_row_ind,row_sid,update_audit_id,source_delete_ind,source_party_created_dtm,party_sub_type_cde,mm_employee_ind,death_dt,deceased_ind,group_nbr,sub_group_nbr,group_ipn_id,group_type_cde,group_type_effective_dt,discount_pct,bill_at_issue_ind,plan_type_cde,maximum_benefit_paid_ind,buy_sell_group_type_cde,long_term_care_ind,default_dividend_pct,guaranteed_standard_issue_ind,employer_paid_pct,employer_paid_discount_pct,preexisting_condition_limitation_id,due_dt_alignment_ind,servicing_agency_id,source_market_cde,market_cde,market_cde_effective_dt,source_sales_category_cde,sales_category_cde,sales_category_effective_dt,default_dividend_pct_effective_dt,underwriting_processor_id,parent_group_nr_id,erisa_plan_cde,erisa_plan_effective_dt,employer_paid_effective_dt,employer_paid_discount_effective_dt,salary_deduction_ind,mgi_ind,endr_ind,endr_dt,servicing_agent_id,source_billing_frequency_cde,billing_frequency_cde,source_bill_type_cde,billing_type_cde,level_pct,crossover_year_txt,employee_receive_dividend_ind,employee_receive_premium_ind,sic_cde,group_class_cde,begin_billing_dt,second_due_day_txt) VALUES ('000011db-4cd4-49bd-8e2a-13b3ccb61f14','BZTER5vNhGqs','ziRjl','yLyGZYi',NULL,'1931-06-30','M',NULL,NULL,'Unk','M',false,NULL,NULL,NULL,'I','2015-12-10','2015-12-10 12:04:06.740','2022-03-24 04:19:58.963',-1,false,'99b25a5a-3dd0-0f17-59e1-00647a7d1d0f',true,'9999-12-31','9999-12-31 00:00:00.000','342',false,NULL,-1,false,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+INSERT INTO TARGET (dim_non_mastered_party_natural_key_hash_uuid,party_id,first_nm,last_nm,full_nm,birth_dt,gender_cde,middle_nm,government_id,marital_status_cde,source_gender_cde,sensitive_party_ind,source_marital_status_cde,agency_region_desc,source_login_id,party_type_cde,begin_dt,begin_dtm,row_process_dtm,audit_id,logical_delete_ind,check_sum,current_row_ind,end_dt,end_dtm,source_system_id,restricted_row_ind,row_sid,update_audit_id,source_delete_ind,source_party_created_dtm,party_sub_type_cde,mm_employee_ind,death_dt,deceased_ind,group_nbr,sub_group_nbr,group_ipn_id,group_type_cde,group_type_effective_dt,discount_pct,bill_at_issue_ind,plan_type_cde,maximum_benefit_paid_ind,buy_sell_group_type_cde,long_term_care_ind,default_dividend_pct,guaranteed_standard_issue_ind,employer_paid_pct,employer_paid_discount_pct,preexisting_condition_limitation_id,due_dt_alignment_ind,servicing_agency_id,source_market_cde,market_cde,market_cde_effective_dt,source_sales_category_cde,sales_category_cde,sales_category_effective_dt,default_dividend_pct_effective_dt,underwriting_processor_id,parent_group_nr_id,erisa_plan_cde,erisa_plan_effective_dt,employer_paid_effective_dt,employer_paid_discount_effective_dt,salary_deduction_ind,mgi_ind,endr_ind,endr_dt,servicing_agent_id,source_billing_frequency_cde,billing_frequency_cde,source_bill_type_cde,billing_type_cde,level_pct,crossover_year_txt,employee_receive_dividend_ind,employee_receive_premium_ind,sic_cde,group_class_cde,begin_billing_dt,second_due_day_txt) VALUES ('000011db-4cd4-49bd-8e2a-13b3ccb61f14','BZTER5vNhGqs','ziRjl','yLyGZYi',NULL,'1931-06-30','M',NULL,NULL,'Unk','M',false,NULL,NULL,NULL,'I','2015-12-10','2015-12-10 12:04:06.740','2022-03-24 04:19:58.963',-1,false,'99b25a5a-3dd0-0f17-59e1-00647a7d1d0f',true,'9999-12-31','9999-12-31 00:00:00.000','342',false,NULL,-1,false,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 
-INSERT INTO EDW.DIM_NON_MASTERED_PARTY (dim_non_mastered_party_natural_key_hash_uuid,party_id,first_nm,last_nm,full_nm,birth_dt,gender_cde,middle_nm,government_id,marital_status_cde,source_gender_cde,sensitive_party_ind,source_marital_status_cde,agency_region_desc,source_login_id,party_type_cde,begin_dt,begin_dtm,row_process_dtm,audit_id,logical_delete_ind,check_sum,current_row_ind,end_dt,end_dtm,source_system_id,restricted_row_ind,row_sid,update_audit_id,source_delete_ind,source_party_created_dtm,party_sub_type_cde,mm_employee_ind,death_dt,deceased_ind,group_nbr,sub_group_nbr,group_ipn_id,group_type_cde,group_type_effective_dt,discount_pct,bill_at_issue_ind,plan_type_cde,maximum_benefit_paid_ind,buy_sell_group_type_cde,long_term_care_ind,default_dividend_pct,guaranteed_standard_issue_ind,employer_paid_pct,employer_paid_discount_pct,preexisting_condition_limitation_id,due_dt_alignment_ind,servicing_agency_id,source_market_cde,market_cde,market_cde_effective_dt,source_sales_category_cde,sales_category_cde,sales_category_effective_dt,default_dividend_pct_effective_dt,underwriting_processor_id,parent_group_nr_id,erisa_plan_cde,erisa_plan_effective_dt,employer_paid_effective_dt,employer_paid_discount_effective_dt,salary_deduction_ind,mgi_ind,endr_ind,endr_dt,servicing_agent_id,source_billing_frequency_cde,billing_frequency_cde,source_bill_type_cde,billing_type_cde,level_pct,crossover_year_txt,employee_receive_dividend_ind,employee_receive_premium_ind,sic_cde,group_class_cde,begin_billing_dt,second_due_day_txt) VALUES ('0001d714-5299-b076-5348-906ffcde0838','ifvwKsU3v80HjxiADTURs','ekt','WpC',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'I','2015-12-07','2015-12-07 00:09:34.446','2022-03-24 04:58:22.393',-1,false,'b034c335-080d-f84f-bef4-e85e5d348836',true,'9999-12-31','9999-12-31 00:00:00.000','342',false,NULL,-1,false,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+INSERT INTO TARGET (dim_non_mastered_party_natural_key_hash_uuid,party_id,first_nm,last_nm,full_nm,birth_dt,gender_cde,middle_nm,government_id,marital_status_cde,source_gender_cde,sensitive_party_ind,source_marital_status_cde,agency_region_desc,source_login_id,party_type_cde,begin_dt,begin_dtm,row_process_dtm,audit_id,logical_delete_ind,check_sum,current_row_ind,end_dt,end_dtm,source_system_id,restricted_row_ind,row_sid,update_audit_id,source_delete_ind,source_party_created_dtm,party_sub_type_cde,mm_employee_ind,death_dt,deceased_ind,group_nbr,sub_group_nbr,group_ipn_id,group_type_cde,group_type_effective_dt,discount_pct,bill_at_issue_ind,plan_type_cde,maximum_benefit_paid_ind,buy_sell_group_type_cde,long_term_care_ind,default_dividend_pct,guaranteed_standard_issue_ind,employer_paid_pct,employer_paid_discount_pct,preexisting_condition_limitation_id,due_dt_alignment_ind,servicing_agency_id,source_market_cde,market_cde,market_cde_effective_dt,source_sales_category_cde,sales_category_cde,sales_category_effective_dt,default_dividend_pct_effective_dt,underwriting_processor_id,parent_group_nr_id,erisa_plan_cde,erisa_plan_effective_dt,employer_paid_effective_dt,employer_paid_discount_effective_dt,salary_deduction_ind,mgi_ind,endr_ind,endr_dt,servicing_agent_id,source_billing_frequency_cde,billing_frequency_cde,source_bill_type_cde,billing_type_cde,level_pct,crossover_year_txt,employee_receive_dividend_ind,employee_receive_premium_ind,sic_cde,group_class_cde,begin_billing_dt,second_due_day_txt) VALUES ('0001d714-5299-b076-5348-906ffcde0838','ifvwKsU3v80HjxiADTURs','ekt','WpC',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'I','2015-12-07','2015-12-07 00:09:34.446','2022-03-24 04:58:22.393',-1,false,'b034c335-080d-f84f-bef4-e85e5d348836',true,'9999-12-31','9999-12-31 00:00:00.000','342',false,NULL,-1,false,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 
 /* WORK TABLE - INSERTS 
  * 
@@ -1184,6 +1189,8 @@ GENDER_CDE,
 SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
+SOURCE_MARITAL_STATUS_CDE, --added missed columns
+GOVERNMENT_ID,
 SOURCE_LOGIN_ID,
 BEGIN_DT,
 BEGIN_DTM,
@@ -1260,6 +1267,8 @@ SRC.GENDER_CDE,
 SRC.SENSITIVE_PARTY_IND,
 SRC.SOURCE_GENDER_CDE,
 SRC.MARITAL_STATUS_CDE,
+SRC.SOURCE_MARITAL_STATUS_CDE, --added missed columns
+SRC.GOVERNMENT_ID,
 SRC.SOURCE_LOGIN_ID,
 SRC.BEGIN_DT,
 SRC.BEGIN_DTM,
@@ -1350,6 +1359,8 @@ GENDER_CDE,
 SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
+SOURCE_MARITAL_STATUS_CDE, --added missed columns
+GOVERNMENT_ID,
 SOURCE_LOGIN_ID,
 BEGIN_DT,
 BEGIN_DTM,
@@ -1426,6 +1437,8 @@ TGT.GENDER_CDE,
 TGT.SENSITIVE_PARTY_IND,
 TGT.SOURCE_GENDER_CDE,
 TGT.MARITAL_STATUS_CDE,
+TGT.SOURCE_MARITAL_STATUS_CDE, --added missed columns
+TGT.GOVERNMENT_ID,
 TGT.SOURCE_LOGIN_ID,
 TGT.BEGIN_DT,
 TGT.BEGIN_DTM,
@@ -1512,6 +1525,8 @@ GENDER_CDE,
 SENSITIVE_PARTY_IND,
 SOURCE_GENDER_CDE,
 MARITAL_STATUS_CDE,
+SOURCE_MARITAL_STATUS_CDE, --added missed columns
+GOVERNMENT_ID,
 SOURCE_LOGIN_ID,
 BEGIN_DT,
 BEGIN_DTM,
@@ -1588,6 +1603,8 @@ SRC.GENDER_CDE,
 SRC.SENSITIVE_PARTY_IND,
 SRC.SOURCE_GENDER_CDE,
 SRC.MARITAL_STATUS_CDE,
+SRC.SOURCE_MARITAL_STATUS_CDE, --added missed columns
+SRC.GOVERNMENT_ID,
 SRC.SOURCE_LOGIN_ID,
 SRC.BEGIN_DT,
 SRC.BEGIN_DTM,
