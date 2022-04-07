@@ -90,3 +90,5 @@ SELECT
 	)Q_1
 	)Q_2
 WHERE RNK=1;
+
+COMMIT;
