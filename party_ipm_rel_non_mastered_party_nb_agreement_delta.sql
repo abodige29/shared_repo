@@ -129,7 +129,7 @@ COMMIT;
 
 /* WORK TABLE - UPDATE TGT RECORD
  * 
- * This script finds records where the new record from the source has a different check_sum than the current EDW.DIM_NON_MASTERED_PARTY record or the record is being ended/deleted. 
+ * This script finds records where the new record from the source has a different check_sum than the current EDW.REL_NON_MASTERED_PARTY_NB_AGREEMENT record or the record is being ended/deleted. 
  * The current record in the target will be ended since the source record will be inserted in the next step.
  * */
 
