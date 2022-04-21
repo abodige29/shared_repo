@@ -1,3 +1,18 @@
+/*
+    FileName: party_ipm_rel_non_mastered_party_nb_agreement.sql
+    Author: mma2156
+    SUBJECT AREA : Party
+    Table_Name :REL_NON_MASTERED_PARTY_NB_AGREEMENT
+    SOURCE: ipm
+    Teradata Source Code: 14                       
+    Create Date:2022-04-20
+        
+    ===============================================================================================================
+    Version/JIRA Story#     Created By     Last_Modified_Date   Description
+    ---------------------------------------------------------------------------------------------------------------
+    		               Party-Tier2         21/04           First Version Tier-2 
+    ------------------------------------------------------------------------------------------------------------------
+*/ 
 
 TRUNCATE TABLE EDW_STAGING.PARTY_IPM_REL_NON_MASTERED_PARTY_NB_AGREEMENT_PRE_WORK;
 
@@ -43,15 +58,15 @@ SELECT
 DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
 UUID_GEN(BTRIM(POL_NR) || INSD_NM || INSD_MID_NM || INSD_LST_NM ||SOURCE_SYSTEM_ID)::UUID AS DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,
 REF_PARTY_ROLE_NATURAL_KEY_HASH_UUID,
-'0001-01-01'::DATE AS BEGIN_DT,
-'0001-01-01'::TIMESTAMP(6) AS BEGIN_DTM,
+BEGIN_DT,
+BEGIN_DTM,
 CURRENT_TIMESTAMP(6) AS  ROW_PROCESS_DTM,
 :audit_id AS AUDIT_ID,
 FALSE AS LOGICAL_DELETE_IND,
 UUID_GEN(SOURCE_DELETE_IND)::uuid AS CHECK_SUM,
-TRUE AS CURRENT_ROW_IND,
-'9999-12-31'::DATE AS  END_DT,
-'9999-12-31'::TIMESTAMP(6) AS END_DTM,
+CASE WHEN END_DT='9999-12-31' THEN TRUE ELSE FALSE END AS CURRENT_ROW_IND,
+END_DT,
+END_DTM,
 SOURCE_SYSTEM_ID,
 FALSE AS RESTRICTED_ROW_IND,
 :audit_id AS UPDATE_AUDIT_ID,
@@ -66,12 +81,18 @@ CLEAN_STRING(VOLTAGEACCESS(INSD_MID_NM,'name')) AS INSD_MID_NM,
 CLEAN_STRING(VOLTAGEACCESS(INSD_LST_NM,'name')) AS INSD_LST_NM,
 UUID_GEN(CLEAN_STRING(FK_ADMN_SYS_CDE), CLEAN_STRING('IPM'), NULL, BTRIM(POL_NR), NULL)::UUID AS DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
 UUID_GEN('Insd')::uuid AS REF_PARTY_ROLE_NATURAL_KEY_HASH_UUID,
+DELTA_DT::DATE AS BEGIN_DT,
+DELTA_DT::TIMESTAMP(6) AS BEGIN_DTM,
+'9999-12-31'::DATE AS END_DT,
+'9999-12-31'::TIMESTAMP(6) AS END_DTM,
 '14' AS SOURCE_SYSTEM_ID,
 FALSE AS SOURCE_DELETE_IND  FROM
 EDW_STAGING.IPM_POL
 )Q_1
 )Q_2
 WHERE RNK=1;
+
+SELECT * FROM EDW_STAGING.IPM_POL LIMIT 10;
 
 COMMIT;
 
