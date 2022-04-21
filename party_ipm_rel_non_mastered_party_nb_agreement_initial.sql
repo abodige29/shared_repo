@@ -5,7 +5,7 @@
     Table_Name :REL_NON_MASTERED_PARTY_NB_AGREEMENT
     SOURCE: ipm
     Teradata Source Code: 14                       
-    Create Date:2022-04-019
+    Create Date:2022-04-19
         
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
