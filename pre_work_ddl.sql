@@ -16,5 +16,6 @@ CREATE TABLE edw_staging.party_ipm_rel_non_mastered_party_nb_agreement_pre_wok
     restricted_row_ind boolean NOT NULL DEFAULT false,
     row_sid int,
     update_audit_id int NOT NULL DEFAULT 0,
-    source_delete_ind boolean NOT NULL
+    source_delete_ind boolean NOT NULL,
+	operator_ind varchar(1)
 ); 
