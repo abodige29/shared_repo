@@ -262,3 +262,4 @@ WHERE(  --handle when there isn't a current record in target but there are histo
 		TGT.ROW_SID IS NOT NULL AND SRC.CHECK_SUM<>TGT.CHECK_SUM);
 
 COMMIT;
+
