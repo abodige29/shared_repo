@@ -10,7 +10,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    		               Party-Tier2         21/04           First Version Tier-2 
+    		               Party-Tier2         22/04           First Version Tier-2 
     ------------------------------------------------------------------------------------------------------------------
 */ 
 
@@ -69,7 +69,7 @@ REC_STRT_DT::TIMESTAMP(6) AS BEGIN_DTM,
 REC_END_DT::DATE AS END_DT,
 REC_END_DT::TIMESTAMP(6) AS END_DTM,
 '343' AS SOURCE_SYSTEM_ID,
-FALSE AS SOURCE_DELETE_IND  FROM
+CASE WHEN CLEAN_STRING(SRC_DEL_IND)='Yes' THEN TRUE ELSE FALSE END  AS SOURCE_DELETE_IND  FROM
 PROD_NBR_VW_TERSUN.IPM_POL_VW WHERE SRC_SYS_ID='14'
 )Q_1
 
