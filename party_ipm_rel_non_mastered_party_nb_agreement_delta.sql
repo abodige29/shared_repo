@@ -10,7 +10,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    		               Party-Tier2         22/04           First Version Tier-2 
+    		               Party-Tier2         25/04           First Version Tier-2 
     ------------------------------------------------------------------------------------------------------------------
 */ 
 
@@ -85,9 +85,9 @@ FROM
         (
         SELECT
             POL_NR,
-            CLEAN_STRING(INSD_NM) AS INSD_NM,
-            CLEAN_STRING(INSD_MID_NM) AS INSD_MID_NM,
-            CLEAN_STRING(INSD_LST_NM) AS INSD_LST_NM,
+            CLEAN_STRING(VOLTAGEACCESS(INSD_NM,'name')) AS INSD_NM,
+            CLEAN_STRING(VOLTAGEACCESS(INSD_MID_NM,'name')) AS INSD_MID_NM,
+            CLEAN_STRING(VOLTAGEACCESS(INSD_LST_NM,'name')) AS INSD_LST_NM,
             UUID_GEN(CLEAN_STRING(FK_ADMN_SYS_CDE),CLEAN_STRING('IPM'),NULL,LPAD(BTRIM(POL_NR),20,'0'),NULL)::UUID AS DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
             UUID_GEN('Insd')::uuid AS REF_PARTY_ROLE_NATURAL_KEY_HASH_UUID,
             DELTA_DT::DATE AS BEGIN_DT,
@@ -178,9 +178,9 @@ FROM
         (
         SELECT
             POL_NR,
-            CLEAN_STRING(INSD_NM) AS INSD_NM,
-            CLEAN_STRING(INSD_MID_NM) AS INSD_MID_NM,
-            CLEAN_STRING(INSD_LST_NM) AS INSD_LST_NM,
+            CLEAN_STRING(VOLTAGEACCESS(INSD_NM,'name')) AS INSD_NM,
+            CLEAN_STRING(VOLTAGEACCESS(INSD_MID_NM,'name')) AS INSD_MID_NM,
+            CLEAN_STRING(VOLTAGEACCESS(INSD_LST_NM,'name')) AS INSD_LST_NM,
             UUID_GEN(CLEAN_STRING(FK_ADMN_SYS_CDE),CLEAN_STRING('IPM'),NULL,LPAD(BTRIM(POL_NR),20,'0'),NULL)::UUID AS DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
             UUID_GEN('Insd')::uuid AS REF_PARTY_ROLE_NATURAL_KEY_HASH_UUID,
             DELTA_DT::DATE AS BEGIN_DT,
@@ -347,7 +347,7 @@ SRC.SOURCE_DELETE_IND
 FROM
 EDW_STAGING.PARTY_IPM_REL_NON_MASTERED_PARTY_NB_AGREEMENT_PRE_WORK SRC
 LEFT JOIN
-EDW_VW.REL_NON_MASTERED_PARTY_NB_AGREEMENT_VW TGT
+EDW.REL_NON_MASTERED_PARTY_NB_AGREEMENT TGT
 ON SRC.DIM_AGREEMENT_NATURAL_KEY_HASH_UUID=TGT.DIM_AGREEMENT_NATURAL_KEY_HASH_UUID AND
 SRC.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID=TGT.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID AND
 SRC.REF_PARTY_ROLE_NATURAL_KEY_HASH_UUID=TGT.REF_PARTY_ROLE_NATURAL_KEY_HASH_UUID 
@@ -357,7 +357,7 @@ WHERE(  --handle when there isn't a current record in target but there are histo
         SRC.DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,
         SRC.REF_PARTY_ROLE_NATURAL_KEY_HASH_UUID) IN
         (SELECT DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,REF_PARTY_ROLE_NATURAL_KEY_HASH_UUID
-        FROM EDW_VW.REL_NON_MASTERED_PARTY_NB_AGREEMENT_VW)
+        FROM EDW.REL_NON_MASTERED_PARTY_NB_AGREEMENT)
         )
         OR(--check_sum has changed
         TGT.ROW_SID IS NOT NULL AND SRC.CHECK_SUM<>TGT.CHECK_SUM );
