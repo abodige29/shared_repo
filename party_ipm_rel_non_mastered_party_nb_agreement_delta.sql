@@ -10,12 +10,17 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    		               Party-Tier2         25/04           First Version Tier-2 
+    TERSUN-4221		               Party-Tier2         25/04           First Version Tier-2 
     ------------------------------------------------------------------------------------------------------------------
 */ 
 
+/* COLLECT STATS FOR PERFORMANCE */
+SELECT ANALYZE_STATISTICS ('EDW_STAGING.IPM_POL');
+
+/*TRUNCATE THE PRE-WORK TABLE */
 TRUNCATE TABLE EDW_STAGING.PARTY_IPM_REL_NON_MASTERED_PARTY_NB_AGREEMENT_PRE_WORK;
 
+/* INSERT THE SOURCE DATA TO PRE-WORK FOR INSERTS AND UPDATES */
 INSERT
     /*DIRECT*/
     INTO
@@ -59,7 +64,7 @@ FROM
     (
     SELECT
         DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
-        UUID_GEN(LPAD(BTRIM(POL_NR),20,'0') || INSD_NM || INSD_MID_NM || INSD_LST_NM || SOURCE_SYSTEM_ID)::UUID AS DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,
+        UUID_GEN(LPAD(BTRIM(POL_NR),20,'0') || COALESCE(INSD_NM,'') || COALESCE (INSD_MID_NM,'') || COALESCE (INSD_LST_NM,'') || SOURCE_SYSTEM_ID)::UUID AS DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,
         REF_PARTY_ROLE_NATURAL_KEY_HASH_UUID,
         BEGIN_DT,
         BEGIN_DTM,
@@ -109,6 +114,7 @@ WHERE
   
 COMMIT;
    
+/* INSERT THE SOURCE DATA TO PRE-WORK FOR DELTES */   
 INSERT
     /*DIRECT*/
     INTO
@@ -152,7 +158,7 @@ FROM
     (
     SELECT
         DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
-        UUID_GEN(LPAD(BTRIM(POL_NR),20,'0') || INSD_NM || INSD_MID_NM || INSD_LST_NM || SOURCE_SYSTEM_ID)::UUID AS DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,
+        UUID_GEN(LPAD(BTRIM(POL_NR),20,'0') || COALESCE(INSD_NM,'') || COALESCE (INSD_MID_NM,'') || COALESCE (INSD_LST_NM,'') || SOURCE_SYSTEM_ID)::UUID AS DIM_NON_MASTERED_PARTY_NATURAL_KEY_HASH_UUID,
         REF_PARTY_ROLE_NATURAL_KEY_HASH_UUID,
         BEGIN_DT,
         BEGIN_DTM,
@@ -201,13 +207,15 @@ WHERE
     AND OPERATOR_IND = 'D';
  
 COMMIT;
+
+
+ /* TRUNCATE THE WORK TABLE */   
+TRUNCATE TABLE EDW_WORK.PARTY_IPM_REL_NON_MASTERED_PARTY_NB_AGREEMENT;
+
 /* WORK TABLE - INSERTS 
  * 
  * this script is used to load the records that don't have a record in target - TOTAL NEW INSERTS
  * */
-TRUNCATE TABLE EDW_WORK.PARTY_IPM_REL_NON_MASTERED_PARTY_NB_AGREEMENT;
-
-
 INSERT /*DIRECT*/ INTO EDW_WORK.PARTY_IPM_REL_NON_MASTERED_PARTY_NB_AGREEMENT
 (
 DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
@@ -364,3 +372,6 @@ WHERE(  --handle when there isn't a current record in target but there are histo
         
        
 COMMIT;
+
+/* COLLECT STATS FOR PERFORMANCE */
+SELECT ANALYZE_STATISTICS ('EDW_WORK.PARTY_IPM_REL_NON_MASTERED_PARTY_NB_AGREEMENT');
