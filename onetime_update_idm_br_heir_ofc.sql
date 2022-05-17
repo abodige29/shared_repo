@@ -7,3 +7,5 @@ from EDW_STAGING.IDM_BR_HIER_OFC_SNAPSHOT
 )q1
 where source_system_id in ('15','356')
 and  q1.ofc_id_old=ofc_id;
+
+commit;
