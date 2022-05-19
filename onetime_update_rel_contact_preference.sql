@@ -14,9 +14,4 @@ set current_row_ind='False',logical_delete_ind='True',row_process_dtm=current_ti
 from(
 select dim_phone_natural_key_hash_uuid from bad_records
 )q
-where p.dim_phone_natural_key_hash_uuid=q.dim_phone_natural_key_hash_uuid
-and current_row_ind;
-
-
-
-
+where p.dim_phone_natural_key_hash_uuid=q.dim_phone_natural_key_hash_uuid;
