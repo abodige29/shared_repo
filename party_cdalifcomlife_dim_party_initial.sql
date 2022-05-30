@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3424             Party-Tier2    08/25                Initial version      
+    TERSUN-3424             Party-Tier2    05/30                Initial version      
     ------------------------------------------------------------------------------------------------------------------
 */
 
@@ -49,9 +49,8 @@ SELECT
     BEGIN_DT,
     BEGIN_DTM,
     ROW_PROCESS_DTM,
-    AUDIT_ID,
     LOGICAL_DELETE_IND,
-    UUID_GEN(SOURCE_DELETE_IND, GENDER_CDE, PREFIX_NM, SUFFIX_NM)::UUID AS CHECK_SUM,
+    UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,GENDER_CDE,PREFIX_NM,SUFFIX_NM)::UUID AS CHECK_SUM,
     CURRENT_ROW_IND,
     END_DT,
     END_DTM,
@@ -63,12 +62,10 @@ SELECT
 FROM 
 (
 SELECT 
-    UUID_GEN(ben_frst_nm, ben_mdl_nm, ben_lst_nm, 
-	         carr_admin_sys_cd, hldg_key_pfx, hldg_key, hldg_key_sfx, 
-             ben_argmt_txt, ben_row_cntr_cd)::UUID AS DIM_PARTY_NATURAL_KEY_HASH_UUID, 
-    COALESCE(ben_frst_nm,'')||COALESCE(ben_mdl_nm,'')||COALESCE(ben_lst_nm,'')||
+	CASE WHEN (carr_admin_sys_cd, hldg_key_pfx, hldg_key, hldg_key_sfx, ben_row_cntr_cd) IS NULL THEN UUID_GEN(NULL)::UUID
+    ELSE UUID_GEN(carr_admin_sys_cd, hldg_key_pfx, hldg_key, hldg_key_sfx, ben_row_cntr_cd)::UUID END AS DIM_PARTY_NATURAL_KEY_HASH_UUID, 
     COALESCE(carr_admin_sys_cd,'')||COALESCE(hldg_key_pfx,'')||hldg_key||COALESCE(hldg_key_sfx,'')||
-    COALESCE(SUBSTRING(ben_argmt_txt,1,100),'')||COALESCE(ben_row_cntr_cd,'') AS PARTY_ID,
+    COALESCE(ben_row_cntr_cd,'') AS PARTY_ID,
     VOLTAGEPROTECT(ben_frst_nm,'name')           AS FIRST_NM,
     VOLTAGEPROTECT(ben_mdl_nm,'name')            AS MIDDLE_NM,
     VOLTAGEPROTECT(ben_lst_nm,'name')            AS LAST_NM,
@@ -76,7 +73,7 @@ SELECT
     ben_data_fr_dt::DATE          AS BEGIN_DT,
     ben_data_fr_dt::TIMESTAMP(6)  AS BEGIN_DTM,
     CURRENT_TIMESTAMP(6)  AS ROW_PROCESS_DTM,
-    :audit_id             AS AUDIT_ID,
+    --:audit_id             AS AUDIT_ID,
     FALSE                 AS LOGICAL_DELETE_IND,
     TRUE::BOOLEAN         AS CURRENT_ROW_IND,
     CASE WHEN curr_ind = 'Y' AND src_del_ind = FALSE THEN '9999-12-31'::DATE
@@ -92,9 +89,8 @@ SELECT
     VOLTAGEPROTECT(ben_pfx_nm,'name')            AS PREFIX_NM,
     VOLTAGEPROTECT(ben_sfx_nm,'name')            AS SUFFIX_NM,
     src_del_ind           AS SOURCE_DELETE_IND,
-    ROW_NUMBER() OVER(PARTITION BY ben_frst_nm, ben_mdl_nm, ben_lst_nm, carr_admin_sys_cd, hldg_key_pfx, hldg_key, hldg_key_sfx, 
-                                   ben_argmt_txt, ben_row_cntr_cd, ben_pfx_nm, ben_sfx_nm
-                      ORDER BY ben_data_fr_dt, ben_data_to_dt) AS RNK
+    ROW_NUMBER() OVER(PARTITION BY  carr_admin_sys_cd, hldg_key_pfx, hldg_key, hldg_key_sfx, ben_row_cntr_cd
+                      ORDER BY ben_data_fr_dt desc, ben_data_to_dt desc) AS RNK
 FROM SOURCE_DATASET
 )DEDUP WHERE RNK=1;
 	
@@ -106,6 +102,7 @@ FROM DIM_PARTY_BEN_LIFCOM A
 ORDER BY DIM_PARTY_NATURAL_KEY_HASH_UUID;
 
 TRUNCATE TABLE EDW_WORK.PARTY_CDALIFCOMLIFE_DIM_PARTY;
+
 
 INSERT INTO  EDW_WORK.PARTY_CDALIFCOMLIFE_DIM_PARTY
 (
