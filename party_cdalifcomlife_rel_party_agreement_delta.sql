@@ -153,7 +153,6 @@ COMMIT;
 /* INSERT SCRIPT FOR PRE WORK TABLE  */
 
 
-
 INSERT INTO EDW_STAGING.PARTY_CDALIFCOMLIFE_REL_PARTY_AGREEMENT_PRE_WORK
 (
 	DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
@@ -382,8 +381,8 @@ FROM
 			and bene_row_ctrt_suffix is null 
 			and bene_row_cntr is null 
 			THEN UUID_GEN(NULL)::UUID 
-			ELSE UUID_GEN(bene_row_adm_sys_name,bene_row_ctrt_prefix,bene_row_ctrt_no,bene_row_ctrt_suffix,  bene_row_cntr)::UUID 
-			END		 											AS		DIM_PARTY_NATURAL_KEY_HASH_UUID,
+			ELSE UUID_GEN(COALESCE(BENE_ROW_ADM_SYS_NAME,'')||COALESCE(BENE_ROW_CTRT_PREFIX,'')||COALESCE(BENE_ROW_CTRT_NO,'')||COALESCE(BENE_ROW_CTRT_SUFFIX,'')||COALESCE(BENE_ROW_CNTR,''))::UUID 
+			END		 AS		DIM_PARTY_NATURAL_KEY_HASH_UUID,
 		UUID_GEN(bene_role_cd)::UUID	 						AS		REF_PARTY_ROLE_NATURAL_KEY_HASH_UUID,
 		UUID_GEN('Unk')::UUID	 								AS		REF_PARTY_SUB_ROLE_NATURAL_KEY_HASH_UUID,
 		UUID_GEN(NULL)::UUID	 								AS		DIM_ACCOUNT_NATURAL_KEY_HASH_UUID,
@@ -476,7 +475,7 @@ FROM
 		CLEAN_STRING(VOLTAGEACCESS(bene_name_prefix,'name'))	AS BENE_NAME_PREFIX,
 		CLEAN_STRING(VOLTAGEACCESS(bene_name_suffix,'name'))	AS BENE_NAME_SUFFIX, 
 		CLEAN_STRING(VOLTAGEACCESS(bene_arrngmt,'freeform'))	AS BENE_ARRNGMT,
-		bene_row_cntr											AS BENE_ROW_CNTR,
+		bene_row_cntr::varchar											AS BENE_ROW_CNTR,
 		COALESCE(CLEAN_STRING(bene_role_cd),'Bene')				AS BENE_ROLE_CD,
 		CLEAN_STRING(bene_class_cd)								AS BENE_CLASS_CD,
 		CURRENT_TIMESTAMP::date									AS BEGIN_DT, 
