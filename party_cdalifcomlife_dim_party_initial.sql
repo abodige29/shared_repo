@@ -40,7 +40,7 @@ WHERE SRC_SYS_ID='50';
 CREATE LOCAL TEMPORARY TABLE DIM_PARTY_BEN_LIFCOM ON COMMIT PRESERVE ROWS AS 
 /*+DIRECT*/
 SELECT 
-    DIM_PARTY_NATURAL_KEY_HASH_UUID,
+    UUID_GEN(PARTY_ID)::uuid AS DIM_PARTY_NATURAL_KEY_HASH_UUID,
     VOLTAGEPROTECT(PARTY_ID,'sorparty') AS PARTY_ID,
     FIRST_NM,
     MIDDLE_NM,
@@ -62,8 +62,6 @@ SELECT
 FROM 
 (
 SELECT 
-	CASE WHEN (carr_admin_sys_cd, hldg_key_pfx, hldg_key, hldg_key_sfx, ben_row_cntr_cd) IS NULL THEN UUID_GEN(NULL)::UUID
-    ELSE UUID_GEN(carr_admin_sys_cd, hldg_key_pfx, hldg_key, hldg_key_sfx, ben_row_cntr_cd)::UUID END AS DIM_PARTY_NATURAL_KEY_HASH_UUID, 
     COALESCE(carr_admin_sys_cd,'')||COALESCE(hldg_key_pfx,'')||hldg_key||COALESCE(hldg_key_sfx,'')||
     COALESCE(ben_row_cntr_cd,'') AS PARTY_ID,
     VOLTAGEPROTECT(ben_frst_nm,'name')           AS FIRST_NM,
