@@ -17,7 +17,7 @@
     JIRA 3817              Party-Tier2            12/23       Removed src_del_ind while calculating CURR_IND
 
     ------------------------------------------------------------------------------------------------------------------
-    31/5*/
+    */
 
 /* truncate Work table */
 
