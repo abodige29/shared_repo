@@ -1,5 +1,5 @@
 /*
-    FileName: party_cdalifcomlife_party_master_of_masters_xref.sql
+    FileName: PARTY_CDALIFCOMLIFE_PARTY_MASTER_OF_MASTERS_XREF.sql
     Author: MM14803
     Subject Area : Party
     Source:CDA  LIF COM
@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3389             Party-Tier2    08/25                Initial version      
+    TERSUN-3389             Party-Tier2    05/31                Initial version      
     ------------------------------------------------------------------------------------------------------------------
 */
 
@@ -17,8 +17,9 @@
 TRUNCATE TABLE EDW_STAGING.PARTY_CDALIFCOMLIFE_PARTY_MASTER_OF_MASTERS_XREF_PRE_WORK;
 TRUNCATE TABLE EDW_WORK.PARTY_CDALIFCOMLIFE_PARTY_MASTER_OF_MASTERS_XREF;
 
+
 /* insert into pre_work from soruce */
-INSERT /*+direct*/ INTO EDW_STAGING.PARTY_CDALIFCOMLIFE_PARTY_MASTER_OF_MASTERS_XREF_PRE_WORK
+INSERT /*+direct*/ INTO work1 --EDW_STAGING.PARTY_CDALIFCOMLIFE_PARTY_MASTER_OF_MASTERS_XREF_PRE_WORK
 (
 	DIM_PARTY_NATURAL_KEY_HASH_UUID,
 	DIM_PRIOR_PARTY_NATURAL_KEY_HASH_UUID,
@@ -89,64 +90,45 @@ FROM
     FROM 
     (
 		SELECT 
-		CASE WHEN (BENE_NAME_FIRST,
-					BENE_NAME_MIDDLE,
-					BENE_NAME_LAST,
+		CASE WHEN (
 					BENE_ROW_ADM_SYS_NAME,
 					BENE_ROW_CTRT_PREFIX,
 					BENE_ROW_CTRT_NO,
 					BENE_ROW_CTRT_SUFFIX,
-					BENE_ARRNGMT,
 					BENE_ROW_CNTR) IS NULL 
 			THEN UUID_GEN(NULL)::UUID 
-			ELSE UUID_GEN(BENE_NAME_FIRST,
-							BENE_NAME_MIDDLE,
-							BENE_NAME_LAST,
+			ELSE UUID_GEN(
 							BENE_ROW_ADM_SYS_NAME,
 							BENE_ROW_CTRT_PREFIX,
 							BENE_ROW_CTRT_NO,
 							BENE_ROW_CTRT_SUFFIX,
-							BENE_ARRNGMT,
 							BENE_ROW_CNTR)::UUID END 					AS DIM_PARTY_NATURAL_KEY_HASH_UUID,
 		CASE WHEN  PARTY_ID_TYPE_CDE = 'Beneficiary' 
 									OR 
-					(BENE_NAME_FIRST,
-					BENE_NAME_MIDDLE,
-					BENE_NAME_LAST,
+					(
 					BENE_ROW_ADM_SYS_NAME,
 					BENE_ROW_CTRT_PREFIX,
 					BENE_ROW_CTRT_NO,
 					BENE_ROW_CTRT_SUFFIX,
-					BENE_ARRNGMT,
 					BENE_ROW_CNTR) IS NULL 
 			THEN UUID_GEN(NULL)::UUID 
-			ELSE UUID_GEN(BENE_NAME_FIRST,
-							BENE_NAME_MIDDLE,
-							BENE_NAME_LAST,
+			ELSE UUID_GEN(
 							BENE_ROW_ADM_SYS_NAME,
 							BENE_ROW_CTRT_PREFIX,
 							BENE_ROW_CTRT_NO,
 							BENE_ROW_CTRT_SUFFIX,
-							BENE_ARRNGMT,
 							BENE_ROW_CNTR)::UUID END 						AS DIM_PRIOR_PARTY_NATURAL_KEY_HASH_UUID,
-		COALESCE(BENE_NAME_FIRST,'')
-		||COALESCE(BENE_NAME_MIDDLE,'')
-		||COALESCE(BENE_NAME_LAST,'')
-		||COALESCE(BENE_ROW_ADM_SYS_NAME,'')
+		COALESCE(BENE_ROW_ADM_SYS_NAME,'')
 		||COALESCE(BENE_ROW_CTRT_PREFIX,'')
 		||COALESCE(BENE_ROW_CTRT_NO,'')
 		||COALESCE(BENE_ROW_CTRT_SUFFIX,'')
-		||COALESCE(SUBSTRING(BENE_ARRNGMT,1,100),'')
 		||COALESCE(BENE_ROW_CNTR,'')								   	   AS PARTY_ID,
 		CASE WHEN  PARTY_ID_TYPE_CDE = 'Mstr_prty_id' 
-			THEN COALESCE(BENE_NAME_FIRST,'')
-			||COALESCE(BENE_NAME_MIDDLE,'')
-			||COALESCE(BENE_NAME_LAST,'')
-			||COALESCE(BENE_ROW_ADM_SYS_NAME,'')
+			THEN 
+			  COALESCE(BENE_ROW_ADM_SYS_NAME,'')
 			||COALESCE(BENE_ROW_CTRT_PREFIX,'')
 			||COALESCE(BENE_ROW_CTRT_NO,'')
 			||COALESCE(BENE_ROW_CTRT_SUFFIX,'')
-			||COALESCE(SUBSTRING(BENE_ARRNGMT,1,100),'')
 			||COALESCE(BENE_ROW_CNTR,'')
 			ELSE NULL END 												   AS PARTY_PRIOR_ID,
 		NULL                                                               AS SOR_PARTY_ID,
@@ -180,9 +162,7 @@ FROM
 			UDF_ISNUM_LPAD(CLEAN_STRING(BENE_ROW_CTRT_SUFFIX),20,'0',TRUE) AS BENE_ROW_CTRT_SUFFIX,
 			CLEAN_STRING(BENE_ROW_ADM_SYS_NAME)                            AS BENE_ROW_ADM_SYS_NAME
 			FROM EDW_STAGING.cda_lifcom_life_edw_bene_delta  SRC
-			
 			UNION 
-			
 			SELECT 
 			CLEAN_STRING(VOLTAGEACCESS(BENE_NAME_FIRST,'name'))            AS BENE_NAME_FIRST, 
 			CLEAN_STRING(VOLTAGEACCESS(BENE_NAME_MIDDLE,'name'))           AS BENE_NAME_MIDDLE,
@@ -206,7 +186,10 @@ SELECT ANALYZE_STATISTICS('EDW_STAGING.PARTY_CDALIFCOMLIFE_PARTY_MASTER_OF_MASTE
 
 /* insert new records into work  */
 
-INSERT /*+direct*/ INTO EDW_WORK.PARTY_CDALIFCOMLIFE_PARTY_MASTER_OF_MASTERS_XREF
+
+
+
+INSERT /*+direct*/ INTO work2 --EDW_WORK.PARTY_CDALIFCOMLIFE_PARTY_MASTER_OF_MASTERS_XREF
 (
 	DIM_PARTY_NATURAL_KEY_HASH_UUID,
 	DIM_PRIOR_PARTY_NATURAL_KEY_HASH_UUID,
