@@ -86,7 +86,7 @@ FROM
     ROW_NUMBER() OVER(PARTITION BY
 	DIM_PARTY_NATURAL_KEY_HASH_UUID,
 	PARTY_ID,
-	PARTY_ID_TYPE_CDE ORDER BY BENEFICIARY_EFFECTIVE_DT) RNK                                        
+	PARTY_ID_TYPE_CDE ORDER BY BENEFICIARY_EFFECTIVE_DT desc) RNK                                        
     FROM 
     (
 		SELECT 
