@@ -1,5 +1,5 @@
 /*
-    FileName: party_cdavntg1life_party_master_of_masters_xref.sql
+    FileName: PARTY_CDAVNTG1LIFE_PARTY_MASTER_OF_MASTERS_XREF.sql
     Author: MM69917
     Subject Area : Party
     Source:CDA VNTG1
@@ -16,6 +16,7 @@
 
 TRUNCATE TABLE EDW_STAGING.PARTY_CDAVNTG1LIFE_PARTY_MASTER_OF_MASTERS_XREF_PRE_WORK;
 TRUNCATE TABLE EDW_WORK.PARTY_CDAVNTG1LIFE_PARTY_MASTER_OF_MASTERS_XREF;
+
 
 
 INSERT /*+direct*/ INTO EDW_STAGING.PARTY_CDAVNTG1LIFE_PARTY_MASTER_OF_MASTERS_XREF_PRE_WORK
@@ -82,46 +83,20 @@ SELECT
     RESTRICTED_ROW_IND,
     UPDATE_AUDIT_ID,
     SOURCE_DELETE_IND,
-    ROW_NUMBER() OVER(PARTITION BY DIM_PARTY_NATURAL_KEY_HASH_UUID, PARTY_ID, PARTY_ID_TYPE_CDE ORDER BY BENEFICIARY_EFFECTIVE_DT) RNK
+    ROW_NUMBER() OVER(PARTITION BY DIM_PARTY_NATURAL_KEY_HASH_UUID, PARTY_ID, PARTY_ID_TYPE_CDE ORDER BY BENEFICIARY_EFFECTIVE_DT DESC) RNK
 	FROM
 (
 SELECT 
-    CASE WHEN bene_name_first IS NULL 
-         AND bene_name_middle IS NULL 
-         AND bene_name_last IS NULL 
-         AND bene_row_adm_sys_name IS NULL 
-         AND bene_row_ctrt_prefix IS NULL 
-         AND bene_row_ctrt_no IS NULL 
-         AND bene_row_ctrt_suffix IS NULL 
-         AND bene_arrngmt IS NULL 
-         AND bene_row_cntr IS NULL 
-         THEN UUID_GEN(NULL)::UUID 
-         ELSE UUID_GEN(bene_name_first, bene_name_middle, bene_name_last, 
-                       bene_row_adm_sys_name, bene_row_ctrt_prefix, bene_row_ctrt_no, bene_row_ctrt_suffix, 
-                       bene_arrngmt, bene_row_cntr)::UUID END AS DIM_PARTY_NATURAL_KEY_HASH_UUID,
-    CASE WHEN  PARTY_ID_TYPE_CDE = 'Beneficiary' 
-									OR 
-		 ( bene_name_first IS NULL 
-         AND bene_name_middle IS NULL 
-         AND bene_name_last IS NULL 
-         AND bene_row_adm_sys_name IS NULL
-         AND bene_row_ctrt_prefix IS NULL 
-         AND bene_row_ctrt_no IS NULL 
-         AND bene_row_ctrt_suffix IS NULL 
-         AND bene_arrngmt IS NULL 
-         AND bene_row_cntr IS NULL )
-         THEN UUID_GEN(NULL)::UUID 
-         ELSE UUID_GEN(bene_name_first, bene_name_middle, bene_name_last, 
-                       bene_row_adm_sys_name, bene_row_ctrt_prefix, bene_row_ctrt_no, bene_row_ctrt_suffix, 
-                       bene_arrngmt, bene_row_cntr)::UUID END AS DIM_PRIOR_PARTY_NATURAL_KEY_HASH_UUID,
-    COALESCE(bene_name_first,'')||COALESCE(bene_name_middle,'')||COALESCE(bene_name_last,'')||
-    COALESCE(bene_row_adm_sys_name,'')||COALESCE(bene_row_ctrt_prefix,'')||COALESCE(bene_row_ctrt_no,'')||COALESCE(bene_row_ctrt_suffix,'')||
-    COALESCE(SUBSTRING(bene_arrngmt,1,100),'')||COALESCE(bene_row_cntr,'')  AS PARTY_ID, 
-    CASE WHEN party_id_type_cde = 'Mstr_prty_id' 
-         THEN COALESCE(bene_name_first,'')||COALESCE(bene_name_middle,'')||COALESCE(bene_name_last,'')||
-              COALESCE(bene_row_adm_sys_name,'')||COALESCE(bene_row_ctrt_prefix,'')||COALESCE(bene_row_ctrt_no,'')||COALESCE(bene_row_ctrt_suffix,'')||
-              COALESCE(SUBSTRING(bene_arrngmt,1,100),'')||COALESCE(bene_row_cntr,'')
-         ELSE NULL END             AS PARTY_PRIOR_ID, 
+    CASE WHEN (BENE_ROW_ADM_SYS_NAME,BENE_ROW_CTRT_PREFIX,BENE_ROW_CTRT_NO,BENE_ROW_CTRT_SUFFIX,BENE_ROW_CNTR) IS NULL 
+			THEN UUID_GEN(NULL)::UUID 
+			ELSE UUID_GEN(COALESCE(BENE_ROW_ADM_SYS_NAME,'')||COALESCE(BENE_ROW_CTRT_PREFIX,'')||COALESCE(BENE_ROW_CTRT_NO,'')||COALESCE(BENE_ROW_CTRT_SUFFIX,'')||COALESCE(BENE_ROW_CNTR,''))::UUID END AS DIM_PARTY_NATURAL_KEY_HASH_UUID,
+		CASE WHEN PARTY_ID_TYPE_CDE = 'Beneficiary' OR (BENE_ROW_ADM_SYS_NAME,BENE_ROW_CTRT_PREFIX,BENE_ROW_CTRT_NO,BENE_ROW_CTRT_SUFFIX,BENE_ROW_CNTR) IS NULL 
+			THEN UUID_GEN(NULL)::UUID 
+			ELSE UUID_GEN(COALESCE(BENE_ROW_ADM_SYS_NAME,'')||COALESCE(BENE_ROW_CTRT_PREFIX,'')||COALESCE(BENE_ROW_CTRT_NO,'')||COALESCE(BENE_ROW_CTRT_SUFFIX,'')||COALESCE(BENE_ROW_CNTR,''))::UUID END AS DIM_PRIOR_PARTY_NATURAL_KEY_HASH_UUID,
+		COALESCE(BENE_ROW_ADM_SYS_NAME,'')||COALESCE(BENE_ROW_CTRT_PREFIX,'')||COALESCE(BENE_ROW_CTRT_NO,'')||COALESCE(BENE_ROW_CTRT_SUFFIX,'')||COALESCE(BENE_ROW_CNTR,'')	 AS PARTY_ID,
+		CASE WHEN  PARTY_ID_TYPE_CDE = 'Mstr_prty_id' 
+			THEN COALESCE(BENE_ROW_ADM_SYS_NAME,'')||COALESCE(BENE_ROW_CTRT_PREFIX,'')||COALESCE(BENE_ROW_CTRT_NO,'')||COALESCE(BENE_ROW_CTRT_SUFFIX,'')||COALESCE(BENE_ROW_CNTR,'')
+			ELSE NULL END 												   AS PARTY_PRIOR_ID,
     NULL                           AS SOR_PARTY_ID,
     party_id_type_cde              AS PARTY_ID_TYPE_CDE,
     '0001-01-01'::DATE             AS BEGIN_DT, 
@@ -153,9 +128,7 @@ FROM
     UDF_ISNUM_LPAD(CLEAN_STRING(bene_row_ctrt_suffix),20,'0',TRUE) AS BENE_ROW_CTRT_SUFFIX,
     CLEAN_STRING(bene_row_adm_sys_name)                            AS BENE_ROW_ADM_SYS_NAME
     FROM EDW_STAGING.cda_vntg1_life_edw_bene_delta  SRC
-    
     UNION 
-    
     SELECT 
     CLEAN_STRING(VOLTAGEACCESS(bene_name_first,'name'))            AS BENE_NAME_FIRST, 
     CLEAN_STRING(VOLTAGEACCESS(bene_name_middle,'name'))           AS BENE_NAME_MIDDLE,
