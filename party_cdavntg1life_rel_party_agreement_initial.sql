@@ -19,7 +19,7 @@
     ------------------------------------------------------------------------------------------------------------------
     */
 
-/* truncate Work table */
+--/* truncate Work table */
 
 TRUNCATE TABLE EDW_WORK.PARTY_CDAVNTG1LIFE_REL_PARTY_AGREEMENT;	
 
