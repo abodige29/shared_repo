@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3424             Party-Tier2    05/30                Initial version      
+    TERSUN-3424             Party-Tier2    06/03                Initial version      
     ------------------------------------------------------------------------------------------------------------------
 */
 
@@ -74,14 +74,8 @@ SELECT
     --:audit_id             AS AUDIT_ID,
     FALSE                 AS LOGICAL_DELETE_IND,
     TRUE::BOOLEAN         AS CURRENT_ROW_IND,
-    CASE WHEN curr_ind = 'Y' AND src_del_ind = FALSE THEN '9999-12-31'::DATE
-         WHEN curr_ind = 'Y' AND src_del_ind = TRUE AND ben_data_to_dt::DATE = '9999-12-31'::DATE THEN CURRENT_DATE
-         WHEN ben_data_to_dt IS NULL THEN '9999-12-31'::DATE 
-         ELSE ben_data_to_dt::DATE END AS END_DT, 
-    CASE WHEN curr_ind = 'Y' AND src_del_ind = FALSE THEN '9999-12-31'::TIMESTAMP 
-         WHEN curr_ind = 'Y' AND src_del_ind = TRUE AND ben_data_to_dt = '9999-12-31'::TIMESTAMP(6) THEN CURRENT_TIMESTAMP(6)
-         WHEN ben_data_to_dt IS NULL THEN '9999-12-31'::TIMESTAMP
-         ELSE ben_data_to_dt END AS END_DTM, 
+    ben_data_to_dt::DATE                         AS END_DT, 
+    ben_data_to_dt::TIMESTAMP(6)                 AS END_DTM, 
     '238'                 AS SOURCE_SYSTEM_ID,
     FALSE                 AS RESTRICTED_ROW_IND,
     VOLTAGEPROTECT(ben_pfx_nm,'name')            AS PREFIX_NM,
