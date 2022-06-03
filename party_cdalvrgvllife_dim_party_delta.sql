@@ -19,7 +19,9 @@ TRUNCATE TABLE EDW_STAGING.PARTY_CDALVRGVLLIFE_DIM_PARTY_PRE_WORK;
 
 TRUNCATE TABLE EDW_WORK.PARTY_CDALVRGVLLIFE_DIM_PARTY;
 
-INSERT INTO  EDW_STAGING.PARTY_CDALVRGVLLIFE_DIM_PARTY_PRE_WORK
+
+
+INSERT INTO EDW_STAGING.PARTY_CDALVRGVLLIFE_DIM_PARTY_PRE_WORK
 (
     DIM_PARTY_NATURAL_KEY_HASH_UUID
    ,PARTY_ID
@@ -55,7 +57,7 @@ SELECT
     ROW_PROCESS_DTM,
     AUDIT_ID,
     LOGICAL_DELETE_IND,
-    UUID_GEN(SOURCE_DELETE_IND, GENDER_CDE, PREFIX_NM, SUFFIX_NM)::UUID AS CHECK_SUM,
+    UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,GENDER_CDE,PREFIX_NM,SUFFIX_NM)::UUID AS CHECK_SUM,
     CURRENT_ROW_IND,
     END_DT,
     END_DTM,
@@ -68,24 +70,10 @@ SELECT
 FROM
 (
 SELECT 
-    UUID_GEN( bene_name_first,
-				bene_name_middle,
-				bene_name_last,
-                bene_row_adm_sys_name,
-			    bene_row_ctrt_prefix,
-			    bene_row_ctrt_no,
-			    bene_row_ctrt_suffix,
-                bene_arrngmt,
-			    bene_row_cntr)::UUID AS DIM_PARTY_NATURAL_KEY_HASH_UUID,
-    COALESCE(bene_name_first,'')
-	||COALESCE(bene_name_middle,'')
-	||COALESCE(bene_name_last,'')
-	||COALESCE(bene_row_adm_sys_name,'')
-	||COALESCE(bene_row_ctrt_prefix,'')
-	||COALESCE(bene_row_ctrt_no,'')
-	||COALESCE(bene_row_ctrt_suffix,'')
-	||COALESCE(SUBSTRING(BENE_ARRNGMT,1,100),'')
-	||COALESCE(bene_row_cntr,'') 	 			AS PARTY_ID, 
+CASE WHEN (BENE_ROW_ADM_SYS_NAME,BENE_ROW_CTRT_PREFIX,BENE_ROW_CTRT_NO,BENE_ROW_CTRT_SUFFIX,BENE_ROW_CNTR) IS NULL 
+		THEN UUID_GEN(NULL)::uuid
+		ELSE UUID_GEN(COALESCE(BENE_ROW_ADM_SYS_NAME,'')||COALESCE(BENE_ROW_CTRT_PREFIX,'')||COALESCE(BENE_ROW_CTRT_NO,'')||COALESCE(BENE_ROW_CTRT_SUFFIX,'')||COALESCE(BENE_ROW_CNTR,''))::UUID END AS DIM_PARTY_NATURAL_KEY_HASH_UUID,
+	COALESCE(BENE_ROW_ADM_SYS_NAME,'')||COALESCE(BENE_ROW_CTRT_PREFIX,'')||COALESCE(BENE_ROW_CTRT_NO,'')||COALESCE(BENE_ROW_CTRT_SUFFIX,'')||COALESCE(BENE_ROW_CNTR,'') AS PARTY_ID, 
 	VOLTAGEPROTECT(BENE_NAME_FIRST,'name') 		AS FIRST_NM,
 	VOLTAGEPROTECT(BENE_NAME_MIDDLE,'name') 	AS MIDDLE_NM,
 	VOLTAGEPROTECT(BENE_NAME_LAST,'name') 		AS LAST_NM,
@@ -104,9 +92,9 @@ SELECT
     VOLTAGEPROTECT(bene_name_prefix,'name') AS PREFIX_NM,
     VOLTAGEPROTECT(bene_name_suffix,'name') AS SUFFIX_NM,
     source_delete_ind AS SOURCE_DELETE_IND,
-	ROW_NUMBER() OVER(PARTITION BY bene_name_first, bene_name_middle, bene_name_last, 
+	ROW_NUMBER() OVER(PARTITION BY 
 	                               bene_row_adm_sys_name, bene_row_ctrt_prefix, bene_row_ctrt_no, bene_row_ctrt_suffix,
-								   bene_arrngmt, bene_row_cntr ORDER BY source_delete_ind) AS RNK
+								   bene_row_cntr ORDER BY BENEFICIARY_EFFECTIVE_DT desc) AS RNK
 FROM
 (
 SELECT 
@@ -122,7 +110,8 @@ SELECT
     COALESCE(CLEAN_STRING(bene_sex),'Unk') AS BENE_SEX,
     CLEAN_STRING(VOLTAGEACCESS(bene_name_prefix,'name'))      AS BENE_NAME_PREFIX,
     CLEAN_STRING(VOLTAGEACCESS(bene_name_suffix,'name'))      AS BENE_NAME_SUFFIX,
-	FALSE::BOOLEAN      AS SOURCE_DELETE_IND
+	FALSE::BOOLEAN      AS SOURCE_DELETE_IND,
+	BENE_EFF_DT                                                    AS BENEFICIARY_EFFECTIVE_DT
 FROM EDW_STAGING.cda_lvrgvl_edw_bene_delta
 )SOURCE_DATASET
 )FULL_DATASET WHERE RNK=1;
