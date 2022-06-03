@@ -17,7 +17,7 @@
     JIRA 3817              Party-Tier2            12/23       Removed src_del_ind while calculating CURR_IND and added new columns
  												  06/03
     ------------------------------------------------------------------------------------------------------------------
-    */
+    --*/
 
 
 TRUNCATE TABLE EDW_WORK.PARTY_CDALVRGVLLIFE_REL_PARTY_AGREEMENT;		/* Work table for LVRGVL Beneficiary REL_PARTY_AGREEMENT */

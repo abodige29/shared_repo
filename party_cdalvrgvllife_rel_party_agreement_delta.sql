@@ -8,9 +8,9 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3818             Party-Tier2        11/23           Initial version      
+    TERSUN-3818             Party-Tier2        06/03           Initial version      
     ------------------------------------------------------------------------------------------------------------------
-*/
+--*/
 
 TRUNCATE TABLE EDW_STAGING.PARTY_CDALVRGVLLIFE_REL_PARTY_AGREEMENT_PRE_WORK;
 
