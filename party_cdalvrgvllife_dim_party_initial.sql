@@ -1,5 +1,5 @@
 /*
-    FileName: party_cdalvrgvllife_dim_party.sql
+    FileName: PARTY_CDALVRGVLLIFE_DIM_PARTY.sql
     Author: MM14295
     Subject Area : Party
     Source: CDA LVRGVL LIFE
@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3522             Party-Tier2    09/06                Initial version      
+    TERSUN-3522             Party-Tier2    06/03                Initial version      
     ------------------------------------------------------------------------------------------------------------------
 */
 
@@ -43,7 +43,7 @@ DROP TABLE IF EXISTS DIM_PARTY_LVRGVL;
 CREATE LOCAL TEMPORARY TABLE DIM_PARTY_LVRGVL ON COMMIT PRESERVE ROWS AS 
 /*+DIRECT*/
 SELECT 
-DIM_PARTY_NATURAL_KEY_HASH_UUID,
+UUID_GEN(PARTY_ID)::uuid AS DIM_PARTY_NATURAL_KEY_HASH_UUID,
 VOLTAGEPROTECT(PARTY_ID,'sorparty') AS PARTY_ID,
 FIRST_NM,
 MIDDLE_NM,
@@ -53,7 +53,7 @@ BEGIN_DT,
 BEGIN_DTM,
 ROW_PROCESS_DTM,
 LOGICAL_DELETE_IND,
-UUID_GEN(SOURCE_DELETE_IND, GENDER_CDE, PREFIX_NM, SUFFIX_NM)::UUID AS CHECK_SUM,
+UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,GENDER_CDE,PREFIX_NM,SUFFIX_NM)::UUID AS CHECK_SUM,
 CURRENT_ROW_IND,
 END_DT,
 END_DTM,
@@ -65,8 +65,7 @@ SOURCE_DELETE_IND
 FROM
 (
 	SELECT 
-    UUID_GEN(BEN_FRST_NM,BEN_MDL_NM,BEN_LST_NM,CARR_ADMIN_SYS_CD,HLDG_KEY_PFX,HLDG_KEY,HLDG_KEY_SFX,BEN_ARGMT_TXT,BEN_ROW_CNTR_CD)::UUID AS DIM_PARTY_NATURAL_KEY_HASH_UUID, 
-    COALESCE(BEN_FRST_NM,'')||COALESCE(BEN_MDL_NM,'')||COALESCE(BEN_LST_NM,'')||COALESCE(CARR_ADMIN_SYS_CD,'')||COALESCE(HLDG_KEY_PFX,'')||HLDG_KEY||COALESCE(HLDG_KEY_SFX,'')||COALESCE(SUBSTRING(BEN_ARGMT_TXT,1,100),'')||COALESCE(BEN_ROW_CNTR_CD,'') AS PARTY_ID,
+    COALESCE(CARR_ADMIN_SYS_CD,'')||COALESCE(HLDG_KEY_PFX,'')||HLDG_KEY||COALESCE(HLDG_KEY_SFX,'')||COALESCE(BEN_ROW_CNTR_CD,'') AS PARTY_ID,
     VOLTAGEPROTECT(BEN_FRST_NM,'name')                         AS FIRST_NM,
     VOLTAGEPROTECT(BEN_MDL_NM,'name')                          AS MIDDLE_NM,
     VOLTAGEPROTECT(BEN_LST_NM,'name')                          AS LAST_NM,
@@ -89,10 +88,10 @@ FROM
     VOLTAGEPROTECT(BEN_PFX_NM,'name')                          AS PREFIX_NM,
     VOLTAGEPROTECT(BEN_SFX_NM,'name')                          AS SUFFIX_NM,
     SRC_DEL_IND                                                AS SOURCE_DELETE_IND,
-    ROW_NUMBER() OVER(PARTITION BY BEN_FRST_NM,BEN_MDL_NM,BEN_LST_NM, 
+    ROW_NUMBER() OVER(PARTITION BY 
                                    CARR_ADMIN_SYS_CD,HLDG_KEY_PFX,HLDG_KEY,HLDG_KEY_SFX,
-                                   BEN_ARGMT_TXT,BEN_ROW_CNTR_CD, BEN_PFX_NM, BEN_SFX_NM 
-                      ORDER BY BEN_DATA_FR_DT,BEN_DATA_TO_DT) AS RNK						   
+                                   BEN_ROW_CNTR_CD 
+                      ORDER BY BEN_DATA_FR_DT DESC,BEN_DATA_TO_DT DESC) AS RNK						   
 	FROM SOURCE_DATASET
 )DEDUP WHERE RNK=1;
 	
@@ -104,6 +103,7 @@ FROM DIM_PARTY_LVRGVL A
 ORDER BY DIM_PARTY_NATURAL_KEY_HASH_UUID;
 
 TRUNCATE TABLE EDW_WORK.PARTY_CDALVRGVLLIFE_DIM_PARTY;
+
 
 INSERT INTO  EDW_WORK.PARTY_CDALVRGVLLIFE_DIM_PARTY
 (
