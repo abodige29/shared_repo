@@ -79,11 +79,9 @@ SELECT
     FALSE                 AS RESTRICTED_ROW_IND,
     VOLTAGEPROTECT(ben_pfx_nm,'name')            AS PREFIX_NM,
     VOLTAGEPROTECT(ben_sfx_nm,'name')            AS SUFFIX_NM,
-    src_del_ind           AS SOURCE_DELETE_IND,
-    ROW_NUMBER() OVER(PARTITION BY carr_admin_sys_cd, hldg_key_pfx, hldg_key, hldg_key_sfx,ben_row_cntr_cd 
-                      ORDER BY ben_data_fr_dt desc, ben_data_to_dt desc) AS RNK						   
+    src_del_ind           AS SOURCE_DELETE_IND				   
 FROM SOURCE_DATASET
-)DEDUP WHERE RNK=1;
+)DEDUP;
 	
 	
 COMMIT;
