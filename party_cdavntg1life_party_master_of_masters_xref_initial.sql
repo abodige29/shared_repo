@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3525             Party-Tier2    06/03                Initial version      
+    TERSUN-3525             Party-Tier2    06/08                Initial version      
     ------------------------------------------------------------------------------------------------------------------
 --*/
 
@@ -81,9 +81,6 @@ FROM
     ,RESTRICTED_ROW_IND  
     ,UPDATE_AUDIT_ID   
     ,SOURCE_DELETE_IND 
-    ,ROW_NUMBER() OVER(PARTITION BY 
-                                    CARR_ADMIN_SYS_CD,HLDG_KEY_PFX,HLDG_KEY,HLDG_KEY_SFX,BEN_ROW_CNTR_CD 
-                       ORDER BY BEN_DATA_TO_DT DESC) AS RNK
 	FROM 
 	(
     SELECT 
@@ -115,7 +112,7 @@ FROM
     FROM PROD_STND_VW_TERSUN.BEN_DATA_VW SRC
     WHERE SRC.SRC_SYS_ID = '38'
 	)SOURCE_DATASET
-)FINAL_DATASET  WHERE RNK=1;
+)FINAL_DATASET  ;
 
 COMMIT;
 
