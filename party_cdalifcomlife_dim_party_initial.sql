@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3424             Party-Tier2    06/03                Initial version      
+    TERSUN-3424             Party-Tier2    06/08                Initial version      
     ------------------------------------------------------------------------------------------------------------------
 */
 
@@ -80,18 +80,17 @@ SELECT
     FALSE                 AS RESTRICTED_ROW_IND,
     VOLTAGEPROTECT(ben_pfx_nm,'name')            AS PREFIX_NM,
     VOLTAGEPROTECT(ben_sfx_nm,'name')            AS SUFFIX_NM,
-    src_del_ind           AS SOURCE_DELETE_IND,
-    ROW_NUMBER() OVER(PARTITION BY  carr_admin_sys_cd, hldg_key_pfx, hldg_key, hldg_key_sfx, ben_row_cntr_cd
-                      ORDER BY ben_data_fr_dt desc, ben_data_to_dt desc) AS RNK
+    src_del_ind           AS SOURCE_DELETE_IND
 FROM SOURCE_DATASET
-)DEDUP WHERE RNK=1;
-	
+)DEDUP ;
+
 COMMIT;
 
 CREATE LOCAL TEMPORARY TABLE DIM_PARTY_LIFCOM_FINAL_DATASET ON COMMIT PRESERVE ROWS AS 
 SELECT A.*, ROW_NUMBER() OVER(PARTITION BY DIM_PARTY_NATURAL_KEY_HASH_UUID ORDER BY BEGIN_DT, END_DT) RW_NUM 
 FROM DIM_PARTY_BEN_LIFCOM A
 ORDER BY DIM_PARTY_NATURAL_KEY_HASH_UUID;
+
 
 TRUNCATE TABLE EDW_WORK.PARTY_CDALIFCOMLIFE_DIM_PARTY;
 
