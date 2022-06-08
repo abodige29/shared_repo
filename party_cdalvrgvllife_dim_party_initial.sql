@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3522             Party-Tier2    06/03                Initial version      
+    TERSUN-3522             Party-Tier2    06/08                Initial version      
     ------------------------------------------------------------------------------------------------------------------
 */
 
@@ -81,13 +81,9 @@ FROM
     FALSE                                                      AS RESTRICTED_ROW_IND,
     VOLTAGEPROTECT(BEN_PFX_NM,'name')                          AS PREFIX_NM,
     VOLTAGEPROTECT(BEN_SFX_NM,'name')                          AS SUFFIX_NM,
-    SRC_DEL_IND                                                AS SOURCE_DELETE_IND,
-    ROW_NUMBER() OVER(PARTITION BY 
-                                   CARR_ADMIN_SYS_CD,HLDG_KEY_PFX,HLDG_KEY,HLDG_KEY_SFX,
-                                   BEN_ROW_CNTR_CD 
-                      ORDER BY BEN_DATA_FR_DT DESC,BEN_DATA_TO_DT DESC) AS RNK						   
+    SRC_DEL_IND                                                AS SOURCE_DELETE_IND						   
 	FROM SOURCE_DATASET
-)DEDUP WHERE RNK=1;
+)DEDUP ;
 	
 COMMIT;
 
