@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3426             Party-Tier2    06/03                Initial version      
+    TERSUN-3426             Party-Tier2    06/08                Initial version      
     ------------------------------------------------------------------------------------------------------------------
 */
 
@@ -106,16 +106,10 @@ FROM
 		FALSE::BOOLEAN                                               AS SOURCE_DELETE_IND,
 		CLEAN_STRING(CARR_ADMIN_SYS_CD)                              AS CARR_ADMIN_SYS_CD,
 		UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_PFX), 20, '0', TRUE)    AS HLDG_KEY_PFX,
-		UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_SFX), 20, '0', TRUE)    AS HLDG_KEY_SFX,
-		ROW_NUMBER() OVER(PARTITION BY
-		CLEAN_STRING(CARR_ADMIN_SYS_CD),
-		UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_PFX), 20, '0', TRUE),
-		LPAD(CLEAN_STRING(HLDG_KEY),20,'0'),  
-		UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_SFX), 20, '0', TRUE),
-		CLEAN_STRING(BEN_ROW_CNTR_CD) ORDER BY BEN_DATA_TO_DT DESC) RNK
+		UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_SFX), 20, '0', TRUE)    AS HLDG_KEY_SFX
 		FROM PROD_STND_VW_TERSUN.BEN_DATA_VW SRC
 		WHERE SRC.SRC_SYS_ID = 50 
-	)SOURCE_DATASET WHERE RNK=1
+	)SOURCE_DATASET 
 )FINAL_DATASET;
 
 COMMIT;
