@@ -15,7 +15,7 @@
     ---------------------------------------------------------------------------------------------------------------
     JIRA 3526              Party-Tier2            09/06        First Version of DML for Tier-2
     JIRA 3817              Party-Tier2            12/23       Removed src_del_ind while calculating CURR_IND and added new columns
- 												  06/03
+ 												  06/10
     ------------------------------------------------------------------------------------------------------------------
     --*/
 
@@ -82,7 +82,9 @@ SELECT
 		THEN TRUE
 		ELSE FALSE END 				AS SOURCE_DELETE_IND,
     NULL                            AS BENEFICIARY_ISS_PER_STIRPES_CDE,
-    Coalesce(BEN_EFF_DT,BEN_DATA_FR_DT::DATE,'01/01/0001')::DATE  AS BUSINESS_STRT_DT,
+    CASE WHEN (BEN_EFF_DT::DATE IS NOT NULL OR BEN_EFF_DT<>'01/01/0001'::DATE) THEN BEN_EFF_DT::DATE
+	WHEN BEN_DATA_FR_DT::DATE IS NOT NULL THEN BEN_DATA_FR_DT::DATE
+	ELSE '01/01/0001'::DATE END AS BUSINESS_STRT_DT,
     Coalesce(BEN_DATA_TO_DT::DATE,'9999-12-31')::DATE  AS BUSINESS_END_DT,
     NULL::numeric                   AS ADVISOR_FIRST_YEAR_COMMISSION,
     NULL::numeric                   AS ADVISOR_RENEWAL_COMMISSION,
@@ -477,6 +479,7 @@ SELECT ANALYZE_STATISTICS('EDW_WORK.PARTY_CDALVRGVLLIFE_REL_PARTY_AGREEMENT');
 
 DELETE FROM EDW.REL_PARTY_AGREEMENT WHERE SOURCE_SYSTEM_ID IN ('246','85') AND SOURCE_BENEFICIARY_ROLE_CDE='Bene';
 
+COMMIT;
 /* INSERTING INTO TARGET TABLE */
 
 INSERT INTO EDW.REL_PARTY_AGREEMENT 
