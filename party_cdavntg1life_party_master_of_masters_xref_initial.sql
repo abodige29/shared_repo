@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3525             Party-Tier2    06/09                Initial version      
+    TERSUN-3525             Party-Tier2    06/10               Initial version      
     ------------------------------------------------------------------------------------------------------------------
 --*/
 
@@ -108,7 +108,8 @@ FROM
     CLEAN_STRING(CARR_ADMIN_SYS_CD)                               AS CARR_ADMIN_SYS_CD,
     UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_PFX), 20, '0', TRUE)     AS HLDG_KEY_PFX,
     UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_SFX), 20, '0', TRUE)     AS HLDG_KEY_SFX,
-    BEN_DATA_TO_DT                                                AS BEN_DATA_TO_DT
+    BEN_DATA_TO_DT                                                AS BEN_DATA_TO_DT,
+    ROW_NUMBER() OVER(PARTITION BY CLEAN_STRING(CARR_ADMIN_SYS_CD),UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_PFX), 20, '0', TRUE),CLEAN_STRING(HLDG_KEY),UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_SFX), 20, '0', TRUE), CLEAN_STRING(BEN_ROW_CNTR_CD) ORDER BY BEN_DATA_TO_DT DESC) RNK
     FROM PROD_STND_VW_TERSUN.BEN_DATA_VW SRC
     WHERE SRC.SRC_SYS_ID = '38'
 	)SOURCE_DATASET
@@ -208,7 +209,8 @@ FROM
     CLEAN_STRING(CARR_ADMIN_SYS_CD)                               AS CARR_ADMIN_SYS_CD,
     UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_PFX), 20, '0', TRUE)     AS HLDG_KEY_PFX,
     UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_SFX), 20, '0', TRUE)     AS HLDG_KEY_SFX,
-    BEN_DATA_TO_DT                                                AS BEN_DATA_TO_DT
+    BEN_DATA_TO_DT                                                AS BEN_DATA_TO_DT,
+    ROW_NUMBER() OVER(PARTITION BY CLEAN_STRING(CARR_ADMIN_SYS_CD),UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_PFX), 20, '0', TRUE),CLEAN_STRING(HLDG_KEY),UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_SFX), 20, '0', TRUE), CLEAN_STRING(BEN_ROW_CNTR_CD) ORDER BY BEN_DATA_TO_DT DESC) RNK
     FROM PROD_STND_VW_TERSUN.BEN_DATA_VW SRC
     WHERE SRC.SRC_SYS_ID = '38'
 	)SOURCE_DATASET 
