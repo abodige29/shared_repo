@@ -79,5 +79,4 @@ CREATE TABLE edw_work.party_cdavntg1life_rel_party_agreement
 );
 
 
-
 SELECT MARK_DESIGN_KSAFE(1);
