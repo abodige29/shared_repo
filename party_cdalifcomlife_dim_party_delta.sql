@@ -7,14 +7,13 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    JIRA 3425               Party-Tier2    5/30                Initial version
+    JIRA 3425               Party-Tier2    06/21                Initial version
     ------------------------------------------------------------------------------------------------------------------
 --*/
 
 TRUNCATE TABLE EDW_STAGING.PARTY_CDALIFCOMLIFE_DIM_PARTY_PRE_WORK;
 
 TRUNCATE TABLE EDW_WORK.PARTY_CDALIFCOMLIFE_DIM_PARTY;
-
 
 
 INSERT INTO EDW_STAGING.PARTY_CDALIFCOMLIFE_DIM_PARTY_PRE_WORK
@@ -24,6 +23,7 @@ INSERT INTO EDW_STAGING.PARTY_CDALIFCOMLIFE_DIM_PARTY_PRE_WORK
    ,FIRST_NM
    ,MIDDLE_NM
    ,LAST_NM
+   ,FULL_NM
    ,GENDER_CDE
    ,BEGIN_DT
    ,BEGIN_DTM
@@ -47,6 +47,7 @@ SELECT
     FIRST_NM,
     MIDDLE_NM,
     LAST_NM,
+    VOLTAGEPROTECT(FULL_NM,'name') AS FULL_NM,
     GENDER_CDE,
     BEGIN_DT,
     BEGIN_DTM,
@@ -77,6 +78,9 @@ SELECT
 	VOLTAGEPROTECT(BENE_NAME_FIRST,'name') 		AS FIRST_NM,
 	VOLTAGEPROTECT(BENE_NAME_MIDDLE,'name') 	AS MIDDLE_NM,
 	VOLTAGEPROTECT(BENE_NAME_LAST,'name') 		AS LAST_NM,
+	CASE WHEN UPPER(BENE_NAME_FORMAT_CD)='U'
+	then coalesce(BENE_NAME_PREFIX,'') || coalesce(BENE_NAME_FIRST,'') || coalesce(BENE_NAME_MIDDLE,'')|| coalesce(BENE_NAME_LAST,'') || coalesce(BENE_NAME_SUFFIX,'')
+	ELSE NULL END AS FULL_NM,
     bene_sex                   AS GENDER_CDE,
     CURRENT_DATE               AS BEGIN_DT,
     CURRENT_TIMESTAMP(6)       AS BEGIN_DTM,
@@ -109,6 +113,7 @@ SELECT
     COALESCE(CLEAN_STRING(bene_sex),'Unk') AS BENE_SEX,
     CLEAN_STRING(VOLTAGEACCESS(bene_name_prefix,'name'))      AS BENE_NAME_PREFIX,
     CLEAN_STRING(VOLTAGEACCESS(bene_name_suffix,'name'))      AS BENE_NAME_SUFFIX,
+    BENE_NAME_FORMAT_CD as BENE_NAME_FORMAT_CD,
 	FALSE::BOOLEAN      AS SOURCE_DELETE_IND,
 	BENE_EFF_DT                                                    AS BENEFICIARY_EFFECTIVE_DT
 FROM EDW_STAGING.CDA_LIFCOM_LIFE_EDW_BENE_DELTA
@@ -127,6 +132,7 @@ INSERT INTO  EDW_WORK.PARTY_CDALIFCOMLIFE_DIM_PARTY
    ,FIRST_NM
    ,MIDDLE_NM
    ,LAST_NM
+   ,FULL_NM
    ,GENDER_CDE
    ,BEGIN_DT
    ,BEGIN_DTM
@@ -150,6 +156,7 @@ SELECT
    ,SRC.FIRST_NM
    ,SRC.MIDDLE_NM
    ,SRC.LAST_NM
+   ,SRC.FULL_NM
    ,SRC.GENDER_CDE
    ,'01/01/0001'::DATE                  AS BEGIN_DT
    ,'01/01/0001 00:00:00'::TIMESTAMP(6) AS BEGIN_DTM
@@ -182,6 +189,7 @@ INSERT INTO  EDW_WORK.PARTY_CDALIFCOMLIFE_DIM_PARTY
    ,FIRST_NM
    ,MIDDLE_NM
    ,LAST_NM
+   ,FULL_NM
    ,GENDER_CDE
    ,BEGIN_DT
    ,BEGIN_DTM
@@ -205,6 +213,7 @@ SELECT
    ,TGT.FIRST_NM
    ,TGT.MIDDLE_NM
    ,TGT.LAST_NM
+   ,TGT.FULL_NM
    ,TGT.GENDER_CDE
    ,TGT.BEGIN_DT
    ,TGT.BEGIN_DTM
@@ -238,6 +247,7 @@ INSERT INTO  EDW_WORK.PARTY_CDALIFCOMLIFE_DIM_PARTY
    ,FIRST_NM
    ,MIDDLE_NM
    ,LAST_NM
+   ,FULL_NM
    ,GENDER_CDE
    ,BEGIN_DT
    ,BEGIN_DTM
@@ -261,6 +271,7 @@ SELECT
    ,SRC.FIRST_NM
    ,SRC.MIDDLE_NM
    ,SRC.LAST_NM
+   ,SRC.FULL_NM
    ,SRC.GENDER_CDE
    ,SRC.BEGIN_DT
    ,SRC.BEGIN_DTM
