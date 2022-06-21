@@ -75,7 +75,7 @@ SELECT
     VOLTAGEPROTECT(bene_name_first,'name')  AS FIRST_NM,
     VOLTAGEPROTECT(bene_name_middle,'name') AS MIDDLE_NM,
     VOLTAGEPROTECT(bene_name_last,'name')   AS LAST_NM,
-    CASE WHEN UPPER(BENE_NAME_FORMAT_CD)='U'
+    CASE WHEN UPPER(BTRIM(BENE_NAME_FORMAT_CD))='U'
 	then coalesce(BENE_NAME_PREFIX,'') || coalesce(BENE_NAME_FIRST,'') || coalesce(BENE_NAME_MIDDLE,'')|| coalesce(BENE_NAME_LAST,'') || coalesce(BENE_NAME_SUFFIX,'')
 	ELSE NULL END AS FULL_NM,
     bene_sex                   AS GENDER_CDE,
