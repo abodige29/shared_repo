@@ -7,7 +7,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    JIRA 3522               Party-Tier2    06/03                Initial version
+    JIRA 3522               Party-Tier2    06/21                Initial version
     ------------------------------------------------------------------------------------------------------------------
 --*/
 
@@ -24,6 +24,7 @@ INSERT INTO EDW_STAGING.PARTY_CDAVNTG1LIFE_DIM_PARTY_PRE_WORK
    ,FIRST_NM
    ,MIDDLE_NM
    ,LAST_NM
+   ,FULL_NM
    ,GENDER_CDE
    ,BEGIN_DT
    ,BEGIN_DTM
@@ -47,6 +48,7 @@ SELECT
     FIRST_NM,
     MIDDLE_NM,
     LAST_NM,
+    VOLTAGEPROTECT(FULL_NM,'name') AS FULL_NM,
     GENDER_CDE,
     BEGIN_DT,
     BEGIN_DTM,
@@ -73,6 +75,9 @@ SELECT
     VOLTAGEPROTECT(bene_name_first,'name')  AS FIRST_NM,
     VOLTAGEPROTECT(bene_name_middle,'name') AS MIDDLE_NM,
     VOLTAGEPROTECT(bene_name_last,'name')   AS LAST_NM,
+    CASE WHEN UPPER(BENE_NAME_FORMAT_CD)='U'
+	then coalesce(BENE_NAME_PREFIX,'') || coalesce(BENE_NAME_FIRST,'') || coalesce(BENE_NAME_MIDDLE,'')|| coalesce(BENE_NAME_LAST,'') || coalesce(BENE_NAME_SUFFIX,'')
+	ELSE NULL END AS FULL_NM,
     bene_sex                   AS GENDER_CDE,
     CURRENT_DATE               AS BEGIN_DT,
     CURRENT_TIMESTAMP(6)       AS BEGIN_DTM,
@@ -107,6 +112,7 @@ SELECT
     CLEAN_STRING(VOLTAGEACCESS(bene_name_prefix,'name'))      AS BENE_NAME_PREFIX,
     CLEAN_STRING(VOLTAGEACCESS(bene_name_suffix,'name'))      AS BENE_NAME_SUFFIX,
 	FALSE::BOOLEAN      AS SOURCE_DELETE_IND,
+	BENE_NAME_FORMAT_CD as BENE_NAME_FORMAT_CD,
 	BENE_EFF_DT                                                    AS BENEFICIARY_EFFECTIVE_DT
 FROM EDW_STAGING.CDA_VNTG1_LIFE_EDW_BENE_DELTA
 )SOURCE_DATASET
@@ -123,6 +129,7 @@ INSERT INTO  EDW_WORK.PARTY_CDAVNTG1LIFE_DIM_PARTY
    ,FIRST_NM
    ,MIDDLE_NM
    ,LAST_NM
+   ,FULL_NM
    ,GENDER_CDE
    ,BEGIN_DT
    ,BEGIN_DTM
@@ -146,6 +153,7 @@ SELECT
    ,SRC.FIRST_NM
    ,SRC.MIDDLE_NM
    ,SRC.LAST_NM
+   ,SRC.FULL_NM
    ,SRC.GENDER_CDE
    ,'01/01/0001'::DATE                  AS BEGIN_DT
    ,'01/01/0001 00:00:00'::TIMESTAMP(6) AS BEGIN_DTM
@@ -167,6 +175,8 @@ LEFT JOIN EDW.DIM_PARTY PTY
 ON SRC.DIM_PARTY_NATURAL_KEY_HASH_UUID = PTY.DIM_PARTY_NATURAL_KEY_HASH_UUID
 WHERE PTY.DIM_PARTY_NATURAL_KEY_HASH_UUID IS NULL;
 
+COMMIT;
+
 /* insert updated records from target into work */
 
 INSERT INTO  EDW_WORK.PARTY_CDAVNTG1LIFE_DIM_PARTY
@@ -176,6 +186,7 @@ INSERT INTO  EDW_WORK.PARTY_CDAVNTG1LIFE_DIM_PARTY
    ,FIRST_NM
    ,MIDDLE_NM
    ,LAST_NM
+   ,FULL_NM
    ,GENDER_CDE
    ,BEGIN_DT
    ,BEGIN_DTM
@@ -199,6 +210,7 @@ SELECT
    ,TGT.FIRST_NM
    ,TGT.MIDDLE_NM
    ,TGT.LAST_NM
+   ,TGT.FULL_NM
    ,TGT.GENDER_CDE
    ,TGT.BEGIN_DT
    ,TGT.BEGIN_DTM
@@ -232,6 +244,7 @@ INSERT INTO  EDW_WORK.PARTY_CDAVNTG1LIFE_DIM_PARTY
    ,FIRST_NM
    ,MIDDLE_NM
    ,LAST_NM
+   ,FULL_NM
    ,GENDER_CDE
    ,BEGIN_DT
    ,BEGIN_DTM
@@ -255,6 +268,7 @@ SELECT
    ,SRC.FIRST_NM
    ,SRC.MIDDLE_NM
    ,SRC.LAST_NM
+   ,SRC.FULL_NM
    ,SRC.GENDER_CDE
    ,SRC.BEGIN_DT
    ,SRC.BEGIN_DTM
