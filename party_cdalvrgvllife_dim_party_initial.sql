@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3522             Party-Tier2    06/08                Initial version      
+    TERSUN-3522             Party-Tier2    06/21                Initial version      
     ------------------------------------------------------------------------------------------------------------------
 */
 
@@ -21,6 +21,7 @@ SELECT
 CLEAN_STRING(VOLTAGEACCESS(BEN_FRST_NM,'name'))        AS BEN_FRST_NM,
 CLEAN_STRING(VOLTAGEACCESS(BEN_MDL_NM,'name'))         AS BEN_MDL_NM, 
 CLEAN_STRING(VOLTAGEACCESS(BEN_LST_NM,'name'))         AS BEN_LST_NM,
+CLEAN_STRING(VOLTAGEACCESS(unfrmt_nm ,'freeform'))      AS BEN_FULL_NM, 
 CLEAN_STRING(CARR_ADMIN_SYS_CD)                        AS CARR_ADMIN_SYS_CD, 
 UDF_ISNUM_LPAD(CLEAN_STRING(HLDG_KEY_PFX),20,'0',TRUE) AS HLDG_KEY_PFX, 
 LPAD(CLEAN_STRING(HLDG_KEY),20,'0')                    AS HLDG_KEY, 
@@ -48,12 +49,13 @@ VOLTAGEPROTECT(PARTY_ID,'sorparty') AS PARTY_ID,
 FIRST_NM,
 MIDDLE_NM,
 LAST_NM,
+FULL_NM,
 GENDER_CDE,
 BEGIN_DT,
 BEGIN_DTM,
 ROW_PROCESS_DTM,
 LOGICAL_DELETE_IND,
-UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,GENDER_CDE,PREFIX_NM,SUFFIX_NM)::UUID AS CHECK_SUM,
+UUID_GEN(SOURCE_DELETE_IND,FIRST_NM,MIDDLE_NM,LAST_NM,GENDER_CDE,PREFIX_NM,SUFFIX_NM,FULL_NM)::UUID AS CHECK_SUM,
 CURRENT_ROW_IND,
 END_DT,
 END_DTM,
@@ -69,6 +71,7 @@ FROM
     VOLTAGEPROTECT(BEN_FRST_NM,'name')                         AS FIRST_NM,
     VOLTAGEPROTECT(BEN_MDL_NM,'name')                          AS MIDDLE_NM,
     VOLTAGEPROTECT(BEN_LST_NM,'name')                          AS LAST_NM,
+    VOLTAGEPROTECT(ben_full_nm,'name')			 				as FULL_NM,
     GNDR_CD                                                    AS GENDER_CDE,
     BEN_DATA_FR_DT::DATE                                       AS BEGIN_DT,
     BEN_DATA_FR_DT::TIMESTAMP(6)                               AS BEGIN_DTM,
@@ -102,6 +105,7 @@ INSERT INTO  EDW_WORK.PARTY_CDALVRGVLLIFE_DIM_PARTY
 ,FIRST_NM
 ,MIDDLE_NM
 ,LAST_NM
+,FULL_NM
 ,GENDER_CDE
 ,BEGIN_DT
 ,BEGIN_DTM
@@ -125,6 +129,7 @@ SELECT
 ,A.FIRST_NM
 ,A.MIDDLE_NM
 ,A.LAST_NM
+,A.FULL_NM
 ,A.GENDER_CDE
 ,A.BEGIN_DT
 ,A.BEGIN_DTM
@@ -163,6 +168,7 @@ INSERT INTO  EDW.DIM_PARTY
 ,FIRST_NM
 ,MIDDLE_NM
 ,LAST_NM
+,FULL_NM
 ,GENDER_CDE
 ,BEGIN_DT
 ,BEGIN_DTM
@@ -186,6 +192,7 @@ SELECT
 ,FIRST_NM
 ,MIDDLE_NM
 ,LAST_NM
+,FULL_NM
 ,GENDER_CDE
 ,BEGIN_DT
 ,BEGIN_DTM
