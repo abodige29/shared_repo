@@ -19,7 +19,7 @@ SELECT ANALYZE_STATISTICS('edw_staging.winrisk_edw_winrisk_requirements');
 SELECT ANALYZE_STATISTICS('edw_staging.winrisk_edw_winrisk_application_snapshot');
 
 /* TRUNCATE PRE WORK AND WORK TABLES */
-Truncate table edw_staging.party_winrisk_rel_agreement_nb_requirement_edw_staging.party_winrisk_rel_agreement_nb_requirement_pre_work;
+Truncate table edw_staging.party_winrisk_rel_agreement_nb_requirement_pre_work;
 Truncate table edw_work.party_winrisk_rel_agreement_nb_requirement;
 
 commit;
@@ -87,7 +87,7 @@ end)
 order by src.case_id,src.case_reqt_id,src.policy_number;
 
 
-/*pre work insert for not deletes */
+/*pre work insert/
 INSERT /*+DIRECT*/ 
 	into edw_staging.party_winrisk_rel_agreement_nb_requirement_pre_work(
 	dim_agreement_natural_key_hash_uuid ,
@@ -195,7 +195,7 @@ from
 	select *,row_number() over(partition by 
 	DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
 		REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
-		REQUIREMENT_CASE_ID,requirement_status_cde) rnk1
+		REQUIREMENT_CASE_ID,REQUIREMENT_STATUS_CDE) rnk1
 	 from
 		(
 		select
@@ -285,7 +285,7 @@ SELECT ANALYZE_STATISTICS('edw_staging.party_winrisk_rel_agreement_nb_requiremen
 
 
 /* WORK TABLE - INSERTS 
- * this script is used to load the records that don't have a record in edw.rel_agreement_nb_requirement */
+ * this script is used to load the records that don't have a record in target */
 INSERT /*+DIRECT*/ 
 	into edw_work.party_winrisk_rel_agreement_nb_requirement (
 	dim_agreement_natural_key_hash_uuid ,
@@ -354,8 +354,8 @@ commit;
 		
 
 /* WORK TABLE - UPDATE TGT RECORD
-* This script finds the records where the new record from the source has a different check_sum than the current edw.rel_agreement_nb_requirement record or the record is being ended/deleted. 
-* The current record in the edw.rel_agreement_nb_requirement will be ended since the source record will be inserted in the next step */
+* This script finds the records where the new record from the source has a different check_sum than the current target record or the record is being ended/deleted. 
+* The current record in the target will be ended since the source record will be inserted in the next step */
 
 INSERT /*+DIRECT*/ 
 	into edw_work.party_winrisk_rel_agreement_nb_requirement (
@@ -436,7 +436,7 @@ select distinct
 commit;
 		
 
-/* WORK TABLE - UPDATE WHERE RECORD ALREADY EXISTS IN target */
+/* WORK TABLE - UPDATE WHERE RECORD ALREADY EXISTS IN TARGET */
 INSERT /*+DIRECT*/ 
 	into edw_work.party_winrisk_rel_agreement_nb_requirement (
 	dim_agreement_natural_key_hash_uuid ,
@@ -517,7 +517,6 @@ select distinct
        TGT.ROW_SID IS NOT NULL AND (TGT.CHECK_SUM <> SRC.CHECK_SUM) --checksum changed
      );
   
-    select * from edw_work.party_winrisk_rel_agreement_nb_requirement;
 commit;
 
  SELECT ANALYZE_STATISTICS('edw_work.party_winrisk_rel_agreement_nb_requirement');
