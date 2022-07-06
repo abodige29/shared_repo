@@ -19,7 +19,7 @@ SELECT ANALYZE_STATISTICS('edw_staging.winrisk_edw_winrisk_requirements');
 SELECT ANALYZE_STATISTICS('edw_staging.winrisk_edw_winrisk_application_snapshot');
 
 /* TRUNCATE PRE WORK AND WORK TABLES */
-Truncate table edw_staging.party_winrisk_rel_agreement_nb_requirement_pre_work;
+Truncate table edw_staging.party_winrisk_rel_agreement_nb_requirement_edw_staging.party_winrisk_rel_agreement_nb_requirement_pre_work;
 Truncate table edw_work.party_winrisk_rel_agreement_nb_requirement;
 
 commit;
@@ -55,6 +55,7 @@ UUID_GEN(clean_string(null),CLEAN_STRING('Appl'),null,lpad(Btrim(src.policy_numb
 
 COMMIT;
 
+
 drop table if exists temp_carr_admin_sys_cd;
 /*carr_admin_sys_cd*/
 create local temporary table temp_carr_admin_sys_cd on commit preserve rows as
@@ -85,12 +86,10 @@ left join (
 end)
 order by src.case_id,src.case_reqt_id,src.policy_number;
 
-CREATE LOCAL TEMPORARY TABLE PRE_WORK ON COMMIT PRESERVE ROWS AS 
-SELECT * FROM edw_staging.party_winrisk_rel_agreement_nb_requirement_pre_work  WHERE 1=2;
 
 /*pre work insert for not deletes */
 INSERT /*+DIRECT*/ 
-	into  PRE_WORK(
+	into edw_staging.party_winrisk_rel_agreement_nb_requirement_pre_work(
 	dim_agreement_natural_key_hash_uuid ,
 	ref_requirement_type_natural_key_hash_uuid ,
 	requirement_case_id ,
@@ -175,11 +174,13 @@ from
 		source_requirement_status_cde ,
 		source_requirement_cde ,
 		source_requirement_category)::uuid as check_sum ,
-		current_row_ind ,
+		lead(False::boolean,1,True::boolean) over( partition by dim_agreement_natural_key_hash_uuid,
+		ref_requirement_type_natural_key_hash_uuid,
+		requirement_case_id order by begin_dtm)::boolean current_row_ind,
 		lead(begin_dt - INTERVAL '1' DAY,1,'12-31-9999'::DATE) OVER(PARTITION BY DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
-		REQUIREMENT_CASE_ID ORDER BY BEGIN_DTM DESC)::DATE as end_dt ,
-		lead(begin_dtm - INTERVAL '1' SECOND,1,'12-31-9999'::TIMESTAMP(6) ) OVER(PARTITION BY DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
-		REQUIREMENT_CASE_ID ORDER BY BEGIN_DTM DESC)::TIMESTAMP(6) AS end_dtm ,
+		REQUIREMENT_CASE_ID ORDER BY BEGIN_DTM)::DATE as end_dt ,
+		lead(begin_dtm - INTERVAL '1' SECOND,1,'12-31-9999'::TIMESTAMP(6)) OVER(PARTITION BY DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
+		REQUIREMENT_CASE_ID ORDER BY BEGIN_DTM)::TIMESTAMP(6) AS end_dtm ,
 		source_system_id ,
 		restricted_row_ind ,
 		update_audit_id ,
@@ -221,193 +222,8 @@ from
 			'36' as source_system_id ,
 			False::boolean as restricted_row_ind ,
 			:audit_id as update_audit_id ,
-			False::boolean as source_delete_ind,
-			'I' as operator_ind
-		from
-			edw_staging.winrisk_edw_winrisk_requirements src
-		left outer join edw_vw.dim_agreement_vw da on
-			clean_string(lpad(src.policy_number,
-			20,
-			'0')) = da.agreement_nr
-			and da.current_row_ind
-			and da.logical_delete_ind = FALSE
-			and Clean_string(da.agreement_type_cde) = 'Appl'
-			and da.source_system_id in ('36', '324')
-		left outer join temp_carr_admin_sys_cd src1
-			on src.policy_number=src1.policy_number
-			and src.case_id=src1.case_id 
-			and src.case_reqt_id=src1.case_reqt_id
-		LEFT JOIN (
-			SELECT
-				DISTINCT SRC_FLD_VAL AS SRC_FLD_VAL,
-				CLEAN_STRING(TRNSLT_FLD_VAL) AS TRNSLT_FLD_VAL
-			FROM
-				EDW_REF.SRC_DATA_TRNSLT
-			WHERE
-				UPPER(SRC_CDE) = 'WINRISK'
-					AND UPPER(SRC_FLD_NM) = 'REQUIREMENT_ID'
-						AND UPPER(TRNSLT_FLD_NM) = 'REQUIREMENT CODE' ) SDT ON
-			CLEAN_STRING(src.requirement_id) = CLEAN_STRING(SDT.SRC_FLD_VAL)
-		LEFT JOIN (
-			SELECT
-				DISTINCT SRC_FLD_VAL AS SRC_FLD_VAL,
-				CLEAN_STRING(TRNSLT_FLD_VAL) AS TRNSLT_FLD_VAL
-			FROM
-				EDW_REF.SRC_DATA_TRNSLT
-			WHERE
-				UPPER(SRC_CDE) = 'WINRISK'
-					AND UPPER(SRC_FLD_NM) = 'TYPE_CODE'
-						AND UPPER(TRNSLT_FLD_NM) = 'REQUIREMENT CATEGORY' ) SDT_1 ON
-			CLEAN_STRING(src.requirement_category) = CLEAN_STRING(SDT_1.SRC_FLD_VAL)
-		LEFT JOIN (
-			SELECT
-				DISTINCT SRC_FLD_VAL AS SRC_FLD_VAL,
-				CLEAN_STRING(TRNSLT_FLD_VAL) AS TRNSLT_FLD_VAL
-			FROM
-				EDW_REF.SRC_DATA_TRNSLT
-			WHERE
-				UPPER(SRC_CDE) = 'WINRISK'
-					AND UPPER(SRC_FLD_NM) = 'STATUS_CODE'
-						AND UPPER(TRNSLT_FLD_NM) = 'REQUIREMENT STATUS' ) SDT_2 ON
-			CLEAN_STRING(src.requirement_status_code) = CLEAN_STRING(SDT_2.SRC_FLD_VAL)
-		where
-			Btrim(change_mode) <> 'DELETE' ) t1 
-			) t2
-		 where rnk1=1
-			)t3
-where
-	rnk = 1;
-	
-
-
-/*pre work insert for deletes */
-INSERT /*+DIRECT*/ 
-	into edw_staging.party_winrisk_rel_agreement_nb_requirement_pre_work (
-	dim_agreement_natural_key_hash_uuid ,
-	ref_requirement_type_natural_key_hash_uuid ,
-	requirement_case_id ,
-	requirement_category_cde ,
-	requirement_comment_txt ,
-	requirement_status_cde ,
-	requirement_order_dt ,
-	physician_full_nm ,
-	requirement_status_dt ,
-	source_requirement_status_cde ,
-	source_requirement_cde ,
-	source_requirement_category ,
-	begin_dt ,
-	begin_dtm ,
-	row_process_dtm ,
-	audit_id ,
-	logical_delete_ind ,
-	check_sum ,
-	current_row_ind ,
-	end_dt ,
-	end_dtm ,
-	source_system_id ,
-	restricted_row_ind ,
-	update_audit_id ,
-	source_delete_ind ,
-	operator_ind
-	)
-select
-	dim_agreement_natural_key_hash_uuid ,
-	ref_requirement_type_natural_key_hash_uuid ,
-	requirement_case_id ,
-	requirement_category_cde ,
-	requirement_comment_txt ,
-	requirement_status_cde ,
-	requirement_order_dt ,
-	physician_full_nm ,
-	requirement_status_dt ,
-	source_requirement_status_cde ,
-	source_requirement_cde ,
-	source_requirement_category ,
-	begin_dt ,
-	begin_dtm ,
-	row_process_dtm ,
-	audit_id ,
-	logical_delete_ind ,
-	check_sum ,
-	current_row_ind ,
-	end_dt ,
-	end_dtm ,
-	source_system_id ,
-	restricted_row_ind ,
-	update_audit_id ,
-	source_delete_ind ,
-	operator_ind
-from
-	(
-	select
-		dim_agreement_natural_key_hash_uuid ,
-		ref_requirement_type_natural_key_hash_uuid ,
-		requirement_case_id ,
-		requirement_category_cde ,
-		requirement_comment_txt ,
-		requirement_status_cde ,
-		requirement_order_dt ,
-		physician_full_nm ,
-		requirement_status_dt ,
-		source_requirement_status_cde ,
-		source_requirement_cde ,
-		source_requirement_category ,
-		begin_dt ,
-		begin_dtm ,
-		row_process_dtm ,
-		audit_id ,
-		logical_delete_ind ,
-		UUID_GEN(source_delete_ind ,
-		requirement_category_cde ,
-		requirement_comment_txt ,
-		requirement_status_cde ,
-		requirement_order_dt ,
-		physician_full_nm ,
-		requirement_status_dt ,
-		source_requirement_status_cde ,
-		source_requirement_cde ,
-		source_requirement_category)::uuid as check_sum ,
-		current_row_ind ,
-		end_dt ,
-		end_dtm ,
-		source_system_id ,
-		restricted_row_ind ,
-		update_audit_id ,
-		source_delete_ind ,
-		operator_ind,
-		ROW_NUMBER() OVER(PARTITION BY DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
-		REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
-		REQUIREMENT_CASE_ID
-	order by
-		begin_dtm desc) rnk
-	from
-		(
-		select
-			coalesce(da.dim_agreement_natural_key_hash_uuid,UUID_GEN(clean_string(src1.CARR_ADMIN_SYS_CD),CLEAN_STRING('Appl'),null,lpad(src.policy_number, 20, '0'),null,0)::uuid) as dim_agreement_natural_key_hash_uuid,
-			UUID_GEN(COALESCE(clean_string(sdt.TRNSLT_FLD_VAL),'Unk'))::uuid as ref_requirement_type_natural_key_hash_uuid,
-			src.case_reqt_id as requirement_case_id,
-			COALESCE(clean_string(sdt_1.TRNSLT_FLD_VAL),'Unk') as requirement_category_cde,
-			src.requirement_comments as requirement_comment_txt,
-			COALESCE(clean_string(sdt_2.TRNSLT_FLD_VAL),'Unk') as requirement_status_cde,
-			Clean_string(src.requirement_status_code) as source_requirement_status_cde,
-			src.requirement_order_date::date as requirement_order_dt,
-			src.physician_name as physician_full_nm,
-			Clean_string(src.requirement_id) as source_requirement_cde,
-			src.requirement_status_date::date as requirement_status_dt,
-			src.requirement_category as source_requirement_category,
-			src.lst_updt_dt::date as begin_dt,
-			src.lst_updt_dt::timestamp(6) as begin_dtm,
-			current_timestamp(6) as ROW_PROCESS_DTM,
-			:audit_id as AUDIT_ID,
-			False::boolean as LOGICAL_DELETE_IND,
-			False::boolean as CURRENT_ROW_IND,
-			current_date as end_dt ,
-			current_timestamp(6) as end_dtm ,
-			'36' as source_system_id ,
-			False::boolean as restricted_row_ind ,
-			:audit_id as update_audit_id ,
-			True::boolean as source_delete_ind,
-			'D' as operator_ind
+			case when Btrim(change_mode) = 'DELETE' then True::boolean else False::boolean end as source_delete_ind,
+			case when Btrim(change_mode) = 'DELETE' then 'D' else 'I' end as operator_ind
 		from
 			edw_staging.winrisk_edw_winrisk_requirements src
 		left outer join edw.dim_agreement da on
@@ -455,27 +271,21 @@ from
 					AND UPPER(SRC_FLD_NM) = 'STATUS_CODE'
 						AND UPPER(TRNSLT_FLD_NM) = 'REQUIREMENT STATUS' ) SDT_2 ON
 			CLEAN_STRING(src.requirement_status_code) = CLEAN_STRING(SDT_2.SRC_FLD_VAL)
-		where
-			Btrim(change_mode) = 'DELETE' ) t1 ) t2
+				) t1 
+			) t2
+		 where rnk1=1
+		)t3
 where
-	rnk = 1
-	and (t2.DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
-		t2.REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
-		t2.REQUIREMENT_CASE_ID) not in (SELECT distinct
-		DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
-		REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
-		REQUIREMENT_CASE_ID
-		from edw_staging.party_winrisk_rel_agreement_nb_requirement_pre_work
-		)
-	;
+	rnk = 1;
+	
 
 commit;
 
 SELECT ANALYZE_STATISTICS('edw_staging.party_winrisk_rel_agreement_nb_requirement_pre_work');
-	
+
 
 /* WORK TABLE - INSERTS 
- * this script is used to load the records that don't have a record in target */
+ * this script is used to load the records that don't have a record in edw.rel_agreement_nb_requirement */
 INSERT /*+DIRECT*/ 
 	into edw_work.party_winrisk_rel_agreement_nb_requirement (
 	dim_agreement_natural_key_hash_uuid ,
@@ -544,10 +354,10 @@ commit;
 		
 
 /* WORK TABLE - UPDATE TGT RECORD
-* This script finds the records where the new record from the source has a different check_sum than the current target record or the record is being ended/deleted. 
-* The current record in the target will be ended since the source record will be inserted in the next step */
-	
-	INSERT /*+DIRECT*/ 
+* This script finds the records where the new record from the source has a different check_sum than the current edw.rel_agreement_nb_requirement record or the record is being ended/deleted. 
+* The current record in the edw.rel_agreement_nb_requirement will be ended since the source record will be inserted in the next step */
+
+INSERT /*+DIRECT*/ 
 	into edw_work.party_winrisk_rel_agreement_nb_requirement (
 	dim_agreement_natural_key_hash_uuid ,
 	ref_requirement_type_natural_key_hash_uuid ,
@@ -576,7 +386,7 @@ commit;
 	source_delete_ind,
 	row_sid
 	)
-select
+select distinct
 	tgt.dim_agreement_natural_key_hash_uuid ,
 	tgt.ref_requirement_type_natural_key_hash_uuid ,
 	tgt.requirement_case_id ,
@@ -596,8 +406,12 @@ select
 	tgt.logical_delete_ind ,
 	tgt.check_sum ,
 	FALSE                                 AS current_row_ind ,
-	src.begin_dt - interval '1' day       as end_dt,
-	src.begin_dtm - interval '1' second   as end_dtm  ,
+	min(src.begin_dt) over( partition by src.dim_agreement_natural_key_hash_uuid,
+		src.ref_requirement_type_natural_key_hash_uuid,
+		src.requirement_case_id order by src.begin_dtm) - interval '1' day     as end_dt,
+	min(src.begin_dtm) over( partition by src.dim_agreement_natural_key_hash_uuid,
+		src.ref_requirement_type_natural_key_hash_uuid,
+		src.requirement_case_id order by src.begin_dtm) - interval '1' second   as end_dtm  ,
 	tgt.source_system_id ,
 	tgt.restricted_row_ind ,
 	src.update_audit_id ,
@@ -618,10 +432,11 @@ select
 		OR (SRC.OPERATOR_IND = 'D' 
 		AND TGT.CHECK_SUM = SRC.CHECK_SUM);
 	
+
 commit;
 		
 
-/* WORK TABLE - UPDATE WHERE RECORD ALREADY EXISTS IN TARGET */
+/* WORK TABLE - UPDATE WHERE RECORD ALREADY EXISTS IN target */
 INSERT /*+DIRECT*/ 
 	into edw_work.party_winrisk_rel_agreement_nb_requirement (
 	dim_agreement_natural_key_hash_uuid ,
@@ -701,7 +516,8 @@ select distinct
 	 (
        TGT.ROW_SID IS NOT NULL AND (TGT.CHECK_SUM <> SRC.CHECK_SUM) --checksum changed
      );
-     
+  
+    select * from edw_work.party_winrisk_rel_agreement_nb_requirement;
 commit;
 
  SELECT ANALYZE_STATISTICS('edw_work.party_winrisk_rel_agreement_nb_requirement');
