@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3702             Party-Tier2    11/22                Initial version      
+    TERSUN-3702             Party-Tier2    07/06                      
     ------------------------------------------------------------------------------------------------------------------
 */
 
@@ -26,7 +26,7 @@ clean_string(hldg_key_sfx) as hldg_key_sfx,
 clean_string(carr_admin_sys_cd) as carr_admin_sys_cd,
 cas_id as cas_id,
 row_number() over(partition by appl_id order by appl_data_fr_dt desc) as rnk
-FROM prod_nbr_vw_tersun.NB_APPL_VW
+FROM prod_nbr_vw_tersun.NB_APPL_VW WHERE SRC_SYS_ID='36'
 )dedup
 WHERE RNK=1
 ORDER BY appl_id;
@@ -92,7 +92,7 @@ ON src.APPL_ID = appl.APPL_ID;
 COMMIT;
 
 CREATE LOCAL TEMPORARY TABLE VT_PRE_WORK ON COMMIT PRESERVE ROWS AS 
-SELECT * FROM EDW.REL_AGREEMENT_NB_REQUIREMENT 
+SELECT * FROM EDW_vw.REL_AGREEMENT_NB_REQUIREMENT_vw 
 WHERE 1<>1;
 
 INSERT /* +DIRECT */  INTO VT_PRE_WORK
@@ -231,15 +231,7 @@ FROM VT_FINAL_SRC
 )DEDUP 
 WHERE RNK=1;
 
-CREATE LOCAL TEMPORARY TABLE VT_ORDER_BY ON COMMIT PRESERVE ROWS AS 
-SELECT *, ROW_NUMBER() OVER(PARTITION BY DIM_AGREEMENT_NATURAL_KEY_HASH_UUID, REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID, REQUIREMENT_CASE_ID
-                            ORDER BY END_DTM DESC, BEGIN_DTM DESC) AS RW_NUM 
-FROM VT_PRE_WORK
-ORDER BY DIM_AGREEMENT_NATURAL_KEY_HASH_UUID, 
-REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID, 
-REQUIREMENT_CASE_ID,
-END_DTM,
-BEGIN_DTM;
+commit;
 
 TRUNCATE TABLE EDW_WORK.PARTY_WINRISK_REL_AGREEMENT_NB_REQUIREMENT;
 
@@ -275,46 +267,44 @@ INSERT INTO EDW_WORK.PARTY_WINRISK_REL_AGREEMENT_NB_REQUIREMENT
     SOURCE_DELETE_IND
 )
 SELECT 
-    A.DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
-    A.REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
-    A.REQUIREMENT_CASE_ID,
-    A.COLLECTION_METHORD_CDE,
-    A.REQUIREMENT_CATEGORY_CDE,
-    A.REQUIREMENT_COMMENT_TXT,
-    A.REQUIREMENT_STATUS_CDE,
-    A.SOURCE_REQUIREMENT_STATUS_CDE,
-    A.REQUIREMENT_ORDER_DT,
-    A.WORKBENCH_COLLECTION_ID,
-    A.WORKBENCH_COLLECTION_METHORD_CDE,
-    A.PHYSICIAN_FULL_NM,
-    A.SOURCE_REQUIREMENT_CDE,
-    A.REQUIREMENT_STATUS_DT,
-    A.SOURCE_REQUIREMENT_CATEGORY, 
-    A.BEGIN_DT,
-    A.BEGIN_DTM,
-    A.ROW_PROCESS_DTM,
-    A.AUDIT_ID,
-    A.LOGICAL_DELETE_IND,
-    A.CHECK_SUM,
-    CASE WHEN A.RW_NUM > B.RW_NUM AND B.RW_NUM = A.RW_NUM-1 AND A.CURRENT_ROW_IND=TRUE THEN FALSE ELSE A.CURRENT_ROW_IND END AS CURRENT_ROW_IND,
-    CASE WHEN A.RW_NUM>B.RW_NUM AND B.RW_NUM=A.RW_NUM-1 AND A.CURRENT_ROW_IND=TRUE THEN B.BEGIN_DT - INTERVAL '1' DAY 
-         WHEN A.RW_NUM=1 AND A.CURRENT_ROW_IND=TRUE AND A.END_DT<>'9999-12-31' THEN '9999-12-31'::DATE
-         ELSE A.END_DT END AS END_DT,
-    CASE WHEN A.RW_NUM>B.RW_NUM AND B.RW_NUM=A.RW_NUM-1 AND A.CURRENT_ROW_IND=TRUE THEN B.BEGIN_DTM - INTERVAL '1' SECOND 
-         WHEN A.RW_NUM=1 AND A.CURRENT_ROW_IND=TRUE AND A.END_DT<>'9999-12-31' THEN '9999-12-31'::TIMESTAMP(6)
-         ELSE A.END_DTM END AS END_DTM, 
-    A.SOURCE_SYSTEM_ID,
-    A.RESTRICTED_ROW_IND,
-    A.UPDATE_AUDIT_ID,
-    A.SOURCE_DELETE_IND
-FROM VT_ORDER_BY A 
-LEFT JOIN VT_ORDER_BY B 
-ON A.DIM_AGREEMENT_NATURAL_KEY_HASH_UUID = B.DIM_AGREEMENT_NATURAL_KEY_HASH_UUID
-AND A.REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID = B.REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID
-AND COALESCE(A.REQUIREMENT_CASE_ID,'-') = COALESCE(B.REQUIREMENT_CASE_ID,'-')
-AND A.RW_NUM = B.RW_NUM+1;
+    DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
+    REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
+    REQUIREMENT_CASE_ID,
+    COLLECTION_METHORD_CDE,
+    REQUIREMENT_CATEGORY_CDE,
+    REQUIREMENT_COMMENT_TXT,
+    REQUIREMENT_STATUS_CDE,
+    SOURCE_REQUIREMENT_STATUS_CDE,
+    REQUIREMENT_ORDER_DT,
+    WORKBENCH_COLLECTION_ID,
+    WORKBENCH_COLLECTION_METHORD_CDE,
+    PHYSICIAN_FULL_NM,
+    SOURCE_REQUIREMENT_CDE,
+    REQUIREMENT_STATUS_DT,
+    SOURCE_REQUIREMENT_CATEGORY, 
+    BEGIN_DT,
+    BEGIN_DTM,
+    ROW_PROCESS_DTM,
+    AUDIT_ID,
+    LOGICAL_DELETE_IND,
+    CHECK_SUM,
+    lead(False::boolean,1,True::boolean) over( partition by dim_agreement_natural_key_hash_uuid,ref_requirement_type_natural_key_hash_uuid,
+    requirement_case_id order by begin_dtm)::boolean current_row_ind ,
+    lead(begin_dt - interval '1' day,1,'12-31-9999'::date) over( partition by dim_agreement_natural_key_hash_uuid,ref_requirement_type_natural_key_hash_uuid,
+    requirement_case_id order by begin_dtm)::date end_dt ,
+    lead(begin_dtm - interval '1' second,1,'12-31-9999'::timestamp(6)) over( partition by dim_agreement_natural_key_hash_uuid,ref_requirement_type_natural_key_hash_uuid,
+    requirement_case_id order by begin_dtm)::timestamp(6) end_dtm ,
+    SOURCE_SYSTEM_ID,
+    RESTRICTED_ROW_IND,
+    UPDATE_AUDIT_ID,
+    SOURCE_DELETE_IND
+FROM VT_PRE_WORK;
+
+commit;
 
 DELETE FROM EDW.REL_AGREEMENT_NB_REQUIREMENT WHERE SOURCE_SYSTEM_ID IN ('324','36');
+
+commit;
 
 INSERT INTO EDW.REL_AGREEMENT_NB_REQUIREMENT 
 (
