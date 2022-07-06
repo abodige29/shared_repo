@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3697            Party-Tier2     01/10/2022            Initial version     
+    TERSUN-3697            Party-Tier2     07/06/2022                 
     ---------------------------------------------------------------------------------------------------------------
 */
 
@@ -85,9 +85,12 @@ left join (
 end)
 order by src.case_id,src.case_reqt_id,src.policy_number;
 
+CREATE LOCAL TEMPORARY TABLE PRE_WORK ON COMMIT PRESERVE ROWS AS 
+SELECT * FROM edw_staging.party_winrisk_rel_agreement_nb_requirement_pre_work  WHERE 1=2;
+
 /*pre work insert for not deletes */
 INSERT /*+DIRECT*/ 
-	into edw_staging.party_winrisk_rel_agreement_nb_requirement_pre_work (
+	into  PRE_WORK(
 	dim_agreement_natural_key_hash_uuid ,
 	ref_requirement_type_natural_key_hash_uuid ,
 	requirement_case_id ,
@@ -173,8 +176,10 @@ from
 		source_requirement_cde ,
 		source_requirement_category)::uuid as check_sum ,
 		current_row_ind ,
-		end_dt ,
-		end_dtm ,
+		lead(begin_dt - INTERVAL '1' DAY,1,'12-31-9999'::DATE) OVER(PARTITION BY DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
+		REQUIREMENT_CASE_ID ORDER BY BEGIN_DTM DESC)::DATE as end_dt ,
+		lead(begin_dtm - INTERVAL '1' SECOND,1,'12-31-9999'::TIMESTAMP(6) ) OVER(PARTITION BY DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
+		REQUIREMENT_CASE_ID ORDER BY BEGIN_DTM DESC)::TIMESTAMP(6) AS end_dtm ,
 		source_system_id ,
 		restricted_row_ind ,
 		update_audit_id ,
@@ -182,10 +187,15 @@ from
 		operator_ind,
 		ROW_NUMBER() OVER(PARTITION BY DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
 		REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
-		REQUIREMENT_CASE_ID
+		REQUIREMENT_CASE_ID,requirement_status_cde
 	order by
 		begin_dtm desc) rnk
-	from
+	from(
+	select *,row_number() over(partition by 
+	DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
+		REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
+		REQUIREMENT_CASE_ID,requirement_status_cde) rnk1
+	 from
 		(
 		select
 			coalesce(da.dim_agreement_natural_key_hash_uuid,UUID_GEN(clean_string(src1.CARR_ADMIN_SYS_CD),CLEAN_STRING('Appl'),null,lpad(src.policy_number, 20, '0'),null,0)::uuid) as dim_agreement_natural_key_hash_uuid,
@@ -206,8 +216,8 @@ from
 			:audit_id as AUDIT_ID,
 			False::boolean as LOGICAL_DELETE_IND,
 			True::boolean as CURRENT_ROW_IND,
-			'12-31-9999'::date as end_dt ,
-			'12-31-9999'::timestamp(6) as end_dtm ,
+			--'12-31-9999'::date as end_dt ,
+			--'12-31-9999'::timestamp(6) as end_dtm ,
 			'36' as source_system_id ,
 			False::boolean as restricted_row_ind ,
 			:audit_id as update_audit_id ,
@@ -215,7 +225,7 @@ from
 			'I' as operator_ind
 		from
 			edw_staging.winrisk_edw_winrisk_requirements src
-		left outer join edw.dim_agreement da on
+		left outer join edw_vw.dim_agreement_vw da on
 			clean_string(lpad(src.policy_number,
 			20,
 			'0')) = da.agreement_nr
@@ -261,7 +271,10 @@ from
 						AND UPPER(TRNSLT_FLD_NM) = 'REQUIREMENT STATUS' ) SDT_2 ON
 			CLEAN_STRING(src.requirement_status_code) = CLEAN_STRING(SDT_2.SRC_FLD_VAL)
 		where
-			Btrim(change_mode) <> 'DELETE' ) t1 ) t2
+			Btrim(change_mode) <> 'DELETE' ) t1 
+			) t2
+		 where rnk1=1
+			)t3
 where
 	rnk = 1;
 	
