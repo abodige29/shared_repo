@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3697            Party-Tier2     07/06/2022                 
+    TERSUN-3697            Party-Tier2     07/08/2022                 
     ---------------------------------------------------------------------------------------------------------------
 */
 
@@ -24,44 +24,12 @@ Truncate table edw_work.party_winrisk_rel_agreement_nb_requirement;
 
 commit;
 
-/*winrisk rel_agreement_nb_requirement pre process script*/
-update edw.rel_agreement_nb_requirement tgt
-set dim_agreement_natural_key_hash_uuid=sub.dim_agreement_natural_key_hash_uuid
-from(
-select sub.*,rar.row_sid
-from
-(select distinct da.dim_agreement_natural_key_hash_uuid,src.policy_number,src.case_reqt_id,
-UUID_GEN(clean_string(null),CLEAN_STRING('Appl'),null,lpad(Btrim(src.policy_number), 20, '0'),null,'0')::uuid null_uuid
-		from
-			edw_staging.winrisk_edw_winrisk_requirements_snapshot src
-		left outer join edw.dim_agreement da on
-			clean_string(lpad(src.policy_number,
-			20,
-			'0')) = da.agreement_nr
-			and da.current_row_ind
-			and da.logical_delete_ind = FALSE
-			and Clean_string(da.agreement_type_cde) = 'Appl'
-			and da.source_system_id in ('36', '324')
-			where da.dim_agreement_natural_key_hash_uuid is not null
-			order by src.policy_number,src.case_reqt_id
-			) sub
-			inner join
-			edw.rel_agreement_nb_requirement rar
-			on sub.null_uuid=rar.dim_agreement_natural_key_hash_uuid
-			and sub.case_reqt_id=rar.requirement_case_id			
-		) sub 
-	where tgt.dim_agreement_natural_key_hash_uuid = sub.null_uuid and tgt.requirement_case_id=sub.case_reqt_id and tgt.row_sid=sub.row_sid;
-	
-
-COMMIT;
-
-
 drop table if exists temp_carr_admin_sys_cd;
 /*carr_admin_sys_cd*/
 create local temporary table temp_carr_admin_sys_cd on commit preserve rows as
 /* +DIRECT */
 select
-	distinct src.policy_number,src.case_id,src.case_reqt_id,pt.admn_sys_cde as carr_admin_sys_cd
+	distinct src.policy_number,src.requirement_id,src.case_id,src.case_reqt_id,pt.admn_sys_cde as carr_admin_sys_cd
 from
 	edw_staging.winrisk_edw_winrisk_requirements src
 left join edw_staging.winrisk_edw_winrisk_application_snapshot appl on
@@ -86,8 +54,63 @@ left join (
 end)
 order by src.case_id,src.case_reqt_id,src.policy_number;
 
+drop table if exists temp_snapshot_src;
+/*temp_snapshot_src*/
+create local temporary table temp_snapshot_src on commit preserve rows AS 
+/*+direct*/
+select src.*
+from
+edw_staging.winrisk_edw_winrisk_requirements_snapshot src
+inner join
+edw.rel_agreement_nb_requirement rar
+on UUID_GEN(clean_string(null),CLEAN_STRING('Appl'),null,lpad(Btrim(src.policy_number), 20, '0'),null,src.case_id)::uuid=rar.dim_agreement_natural_key_hash_uuid
+and src.case_reqt_id=rar.requirement_case_id
+and rar.source_system_id in ('36', '324')
+order by policy_number,case_reqt_id;
 
-/*pre work insert/
+
+/*winrisk rel_agreement_nb_requirement pre process script*/
+update edw.rel_agreement_nb_requirement  tgt
+set dim_agreement_natural_key_hash_uuid=sub.dim_agreement_natural_key_hash_uuid
+from(
+select sub.*,rar.row_sid
+from
+(select distinct coalesce(da.dim_agreement_natural_key_hash_uuid,UUID_GEN(clean_string(src1.carr_admin_sys_cd),CLEAN_STRING('Appl'),null,lpad(Btrim(src.policy_number), 20, '0'),null,src.case_id)::uuid) as dim_agreement_natural_key_hash_uuid
+,src.policy_number,src.case_reqt_id,src.requirement_id,src.case_id,
+UUID_GEN(clean_string(null),CLEAN_STRING('Appl'),null,lpad(Btrim(src.policy_number), 20, '0'),null,src.case_id)::uuid null_uuid
+		from
+			temp_snapshot_src src
+		left outer join edw.dim_agreement da on
+			clean_string(lpad(src.policy_number,
+			20,
+			'0')) = da.agreement_nr
+			and src.case_id = da.application_case_id
+			and da.current_row_ind
+			and da.logical_delete_ind = FALSE
+			and Clean_string(da.agreement_type_cde) = 'Appl'
+			and da.source_system_id in ('36', '324')
+		left outer join temp_carr_admin_sys_cd src1
+			on src.policy_number=src1.policy_number
+			and coalesce(src.case_id,'')=coalesce(src1.case_id,'')
+			and src.case_reqt_id=src1.case_reqt_id
+			and coalesce(Btrim(src.requirement_id),'')=coalesce(Btrim(src1.requirement_id),'')
+			where da.dim_agreement_natural_key_hash_uuid<>null_uuid
+			order by src.policy_number,src.case_reqt_id,src.requirement_id
+			) sub
+			inner join
+			edw.rel_agreement_nb_requirement rar
+			on sub.null_uuid=rar.dim_agreement_natural_key_hash_uuid
+			and sub.case_reqt_id=rar.requirement_case_id
+			and rar.source_system_id in ('324','36')
+order by policy_number,case_reqt_id,null_uuid,dim_agreement_natural_key_hash_uuid			
+		) sub 
+	where tgt.dim_agreement_natural_key_hash_uuid = sub.null_uuid and tgt.requirement_case_id=sub.case_reqt_id and tgt.row_sid=sub.row_sid;
+	
+
+
+COMMIT;
+
+/*pre work insert*/
 INSERT /*+DIRECT*/ 
 	into edw_staging.party_winrisk_rel_agreement_nb_requirement_pre_work(
 	dim_agreement_natural_key_hash_uuid ,
