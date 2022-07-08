@@ -218,7 +218,9 @@ from
 	select *,row_number() over(partition by 
 	DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
 		REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
-		REQUIREMENT_CASE_ID,REQUIREMENT_STATUS_CDE) rnk1
+		REQUIREMENT_CASE_ID,REQUIREMENT_STATUS_CDE
+		order by
+		begin_dtm desc) rnk1
 	 from
 		(
 		select
