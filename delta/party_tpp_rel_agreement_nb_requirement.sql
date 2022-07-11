@@ -26,42 +26,13 @@ Truncate table edw_work.party_tpp_rel_agreement_nb_requirement;
 
 commit;
 
-/*tpp rel_agreement_nb_requirement pre process script*/
-
-update edw.rel_agreement_nb_requirement tgt
-set dim_agreement_natural_key_hash_uuid=sub.dim_agreement_natural_key_hash_uuid
-from(
-select sub.*,rar.row_sid
-from
-(select distinct da.dim_agreement_natural_key_hash_uuid,src.policy_number,src.case_reqt_id,
-UUID_GEN(clean_string(null),CLEAN_STRING('Appl'),null,lpad(Btrim(src.policy_number), 20, '0'),null,src.case_id)::uuid null_uuid
-		from
-			edw_staging.tpp_edw_tpp_requirements_snapshot src
-		left outer join edw.dim_agreement da 
-			on	clean_string(lpad(src.policy_number,20,'0')) = da.agreement_nr
-			and src.case_id = da.application_case_id
-			and da.current_row_ind
-			and da.logical_delete_ind = FALSE
-			and Clean_string(da.agreement_type_cde) = 'Appl'
-			and da.source_system_id in ('32', '347')
-			where da.dim_agreement_natural_key_hash_uuid is not null
-			order by src.policy_number,src.case_reqt_id
-			) sub
-			inner join
-			edw.rel_agreement_nb_requirement rar
-			on sub.null_uuid=rar.dim_agreement_natural_key_hash_uuid
-			and sub.case_reqt_id=rar.requirement_case_id			
-		) sub 
-	where tgt.dim_agreement_natural_key_hash_uuid = sub.null_uuid and tgt.requirement_case_id=sub.case_reqt_id and tgt.row_sid=sub.row_sid;
-
-commit;
 
 drop table if exists temp_carr_admin_sys_cd;
 /*carr_admin_sys_cd*/
 create local temporary table temp_carr_admin_sys_cd on commit preserve rows as
 /* +DIRECT */
 select
-	distinct src.policy_number,src.case_id,src.case_reqt_id,pt.admn_sys_cde as carr_admin_sys_cd
+	distinct src.policy_number,src.case_id,src.requirement_id,src.case_reqt_id,pt.admn_sys_cde as carr_admin_sys_cd
 from
 	edw_staging.tpp_edw_tpp_requirements src
 left join edw_staging.tpp_edw_tpp_application_snapshot appl on
@@ -74,6 +45,77 @@ left join (
 		edw_ref.product_translator
 ) pt on clean_string(appl.product_code) = clean_string(pt.prod_typ_cde)
 order by src.case_id,src.case_reqt_id,src.policy_number;
+
+drop table if exists temp_tpp_edw_tpp_requirement_history_snapshot;
+/*temp_tpp_edw_tpp_requirement_history_snapshot*/
+create local temporary table temp_tpp_edw_tpp_requirement_history_snapshot on commit preserve rows as
+/* +DIRECT */
+select * from
+(
+select
+	distinct src.policy_number,src.case_id,src.case_reqt_id,hist.requirement_status_code, hist.requirement_status_date,
+	ROW_NUMBER() over(partition by src.policy_number,src.case_id,src.case_reqt_id order by sort_num desc) rnk
+from
+	edw_staging.tpp_edw_tpp_requirements src
+inner join edw_staging.tpp_edw_tpp_requirement_history_snapshot hist
+		on src.policy_number=hist.policy_number
+		and src.case_id=hist.case_id 
+		and src.case_reqt_id=hist.case_reqt_id
+		) sub where rnk=1
+order by case_id,case_reqt_id,policy_number;
+
+/*tpp rel_agreement_nb_requirement pre process script*/
+
+drop table if exists temp_snapshot_src;
+/*temp_snapshot_src*/
+create local temporary table temp_snapshot_src on commit preserve rows AS 
+/*+direct*/
+select src.*
+from
+edw_staging.tpp_edw_tpp_requirements_snapshot src
+inner join
+edw.rel_agreement_nb_requirement rar
+on UUID_GEN(clean_string(null),CLEAN_STRING('Appl'),null,lpad(Btrim(src.policy_number), 20, '0'),null,src.case_id)::uuid=rar.dim_agreement_natural_key_hash_uuid
+and src.case_reqt_id=rar.requirement_case_id
+and rar.source_system_id in ('32','347')
+order by policy_number,case_reqt_id;
+
+
+update edw.rel_agreement_nb_requirement tgt
+set dim_agreement_natural_key_hash_uuid=sub.dim_agreement_natural_key_hash_uuid
+from(
+select sub.*,rar.row_sid
+from
+(select distinct coalesce(da.dim_agreement_natural_key_hash_uuid,UUID_GEN(clean_string(src1.carr_admin_sys_cd),CLEAN_STRING('Appl'),null,lpad(Btrim(src.policy_number), 20, '0'),null,src.case_id)::uuid) as dim_agreement_natural_key_hash_uuid
+	,src.policy_number,src.case_reqt_id,src.requirement_id,src.case_id,
+	UUID_GEN(clean_string(null),CLEAN_STRING('Appl'),null,lpad(Btrim(src.policy_number), 20, '0'),null,src.case_id)::uuid null_uuid
+		from
+			temp_snapshot_src  src
+		left outer join edw.dim_agreement da 
+			on	clean_string(lpad(src.policy_number,20,'0')) = da.agreement_nr
+			and src.case_id = da.application_case_id
+			and da.current_row_ind
+			and da.logical_delete_ind = FALSE
+			and Clean_string(da.agreement_type_cde) = 'Appl'
+			and da.source_system_id in ('32', '347')
+			left outer join temp_carr_admin_sys_cd src1
+			on src.policy_number=src1.policy_number
+			and coalesce(src.case_id,'')=coalesce(src1.case_id,'')
+			and src.case_reqt_id=src1.case_reqt_id
+			and coalesce(Btrim(src.requirement_id),'')=coalesce(Btrim(src1.requirement_id),'')
+			where da.dim_agreement_natural_key_hash_uuid<>null_uuid
+			order by src.policy_number,src.case_reqt_id,src.requirement_id
+			) sub
+			inner join
+			edw.rel_agreement_nb_requirement rar
+			on sub.null_uuid=rar.dim_agreement_natural_key_hash_uuid
+			and sub.case_reqt_id=rar.requirement_case_id			
+		) sub 
+	where tgt.dim_agreement_natural_key_hash_uuid = sub.null_uuid and tgt.requirement_case_id=sub.case_reqt_id and tgt.row_sid=sub.row_sid;
+
+commit;
+
+
 
 drop table if exists temp_tpp_edw_tpp_requirement_history_snapshot;
 /*temp_tpp_edw_tpp_requirement_history_snapshot*/
@@ -188,9 +230,15 @@ from
 		source_requirement_status_cde ,
 		source_requirement_cde ,
 		source_requirement_category)::uuid as check_sum ,
-		current_row_ind ,
-		end_dt ,
-		end_dtm ,
+		lead(False::boolean,1,True::boolean) over( partition by dim_agreement_natural_key_hash_uuid,
+		ref_requirement_type_natural_key_hash_uuid,
+		requirement_case_id order by begin_dtm)::boolean current_row_ind ,
+		lead(begin_dt - interval '1' day,1,'12-31-9999'::date) over( partition by dim_agreement_natural_key_hash_uuid,
+		ref_requirement_type_natural_key_hash_uuid,
+		requirement_case_id order by begin_dtm)::date end_dt ,
+		lead(begin_dtm - interval '1' second,1,'12-31-9999'::timestamp(6)) over( partition by dim_agreement_natural_key_hash_uuid,
+		ref_requirement_type_natural_key_hash_uuid,
+		requirement_case_id order by begin_dtm)::timestamp(6) end_dtm ,
 		source_system_id ,
 		restricted_row_ind ,
 		update_audit_id ,
@@ -198,9 +246,17 @@ from
 		operator_ind,
 		ROW_NUMBER() OVER(PARTITION BY DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
 		REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
-		REQUIREMENT_CASE_ID
+		REQUIREMENT_CASE_ID,requirement_status_cde
 	order by
 		begin_dtm desc) rnk
+		from
+		(
+			SELECT *,
+			ROW_NUMBER() OVER(PARTITION BY DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
+		REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
+		REQUIREMENT_CASE_ID,requirement_status_cde
+	order by
+		begin_dtm desc) rnk1
 	from
 		(
 		select
@@ -224,8 +280,8 @@ from
 			:audit_id as AUDIT_ID,
 			False::boolean as LOGICAL_DELETE_IND,
 			True::boolean as CURRENT_ROW_IND,
-			'12-31-9999'::date as end_dt ,
-			'12-31-9999'::timestamp(6) as end_dtm ,
+			--'12-31-9999'::date as end_dt ,
+			--'12-31-9999'::timestamp(6) as end_dtm ,
 			'32' as source_system_id ,
 			False::boolean as restricted_row_ind ,
 			:audit_id as update_audit_id ,
@@ -297,7 +353,10 @@ from
 						AND UPPER(TRNSLT_FLD_NM) = 'WB COLLECTION METHOD DESCRIPTION' ) SDT_3 ON
 			CLEAN_STRING(src.workbench_collection_id) = CLEAN_STRING(SDT_3.SRC_FLD_VAL)
 		/*where
-			Btrim(change_mode) <> 'DELETE' */) t1 ) t2
+			Btrim(change_mode) <> 'DELETE' */
+			) t1
+		) t2 where rnk1=1
+	)t3
 where
 	rnk = 1;
 	
@@ -437,8 +496,12 @@ select
 	tgt.logical_delete_ind ,
 	tgt.check_sum ,
 	FALSE                                 AS current_row_ind ,
-	src.begin_dt - interval '1' day       as end_dt,
-	src.begin_dtm - interval '1' second   as end_dtm  ,
+	min(src.begin_dt) over( partition by src.dim_agreement_natural_key_hash_uuid,
+		src.ref_requirement_type_natural_key_hash_uuid,
+		src.requirement_case_id order by src.begin_dtm) - interval '1' day     as end_dt,
+	min(src.begin_dtm) over( partition by src.dim_agreement_natural_key_hash_uuid,
+		src.ref_requirement_type_natural_key_hash_uuid,
+		src.requirement_case_id order by src.begin_dtm) - interval '1' second   as end_dtm  ,
 	tgt.source_system_id ,
 	tgt.restricted_row_ind ,
 	src.update_audit_id ,
@@ -551,3 +614,4 @@ commit;
 
  SELECT ANALYZE_STATISTICS('edw_work.party_tpp_rel_agreement_nb_requirement');
  SELECT ANALYZE_STATISTICS('edw.rel_agreement_nb_requirement');
+ 
