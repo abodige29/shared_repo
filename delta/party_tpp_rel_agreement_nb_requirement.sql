@@ -1,4 +1,4 @@
-/*
+ /*
     FileName: party_tpp_rel_agreement_nb_requirement.sql
     Author: MM01884
     Subject Area: Party
@@ -8,7 +8,7 @@
     ===============================================================================================================
     Version/JIRA Story#     Created By     Last_Modified_Date   Description
     ---------------------------------------------------------------------------------------------------------------
-    TERSUN-3698            Party-Tier2     01/10/2022            Initial version     
+    TERSUN-3698            Party-Tier2     07/14/2022                
     ---------------------------------------------------------------------------------------------------------------
 */
 
@@ -54,17 +54,17 @@ select * from
 (
 select
 	distinct src.policy_number,src.case_id,src.case_reqt_id,hist.requirement_status_code, hist.requirement_status_date,
-	ROW_NUMBER() over(partition by src.policy_number,src.case_id,src.case_reqt_id order by sort_num desc) rnk
+	ROW_NUMBER() over(partition by src.policy_number,src.case_id,src.case_reqt_id order by hist.lst_updt_dt,sort_num) rnk
 from
 	edw_staging.tpp_edw_tpp_requirements src
 inner join edw_staging.tpp_edw_tpp_requirement_history_snapshot hist
 		on src.policy_number=hist.policy_number
 		and src.case_id=hist.case_id 
 		and src.case_reqt_id=hist.case_reqt_id
-		) sub where rnk=1
+		) sub 
 order by case_id,case_reqt_id,policy_number;
 
-/*tpp rel_agreement_nb_requirement pre process script*/
+
 
 drop table if exists temp_snapshot_src;
 /*temp_snapshot_src*/
@@ -80,7 +80,7 @@ and src.case_reqt_id=rar.requirement_case_id
 and rar.source_system_id in ('32','347')
 order by policy_number,case_reqt_id;
 
-
+/*tpp rel_agreement_nb_requirement pre process script*/
 update edw.rel_agreement_nb_requirement tgt
 set dim_agreement_natural_key_hash_uuid=sub.dim_agreement_natural_key_hash_uuid
 from(
@@ -115,25 +115,6 @@ from
 
 commit;
 
-
-
-drop table if exists temp_tpp_edw_tpp_requirement_history_snapshot;
-/*temp_tpp_edw_tpp_requirement_history_snapshot*/
-create local temporary table temp_tpp_edw_tpp_requirement_history_snapshot on commit preserve rows as
-/* +DIRECT */
-select * from
-(
-select
-	distinct src.policy_number,src.case_id,src.case_reqt_id,hist.requirement_status_code, hist.requirement_status_date,
-	ROW_NUMBER() over(partition by src.policy_number,src.case_id,src.case_reqt_id order by sort_num desc) rnk
-from
-	edw_staging.tpp_edw_tpp_requirements src
-inner join edw_staging.tpp_edw_tpp_requirement_history_snapshot hist
-		on src.policy_number=hist.policy_number
-		and src.case_id=hist.case_id 
-		and src.case_reqt_id=hist.case_reqt_id
-		) sub where rnk=1
-order by case_id,case_reqt_id,policy_number;
 
 /*pre work insert for not deletes */
 INSERT /*+DIRECT*/ 
@@ -232,13 +213,13 @@ from
 		source_requirement_category)::uuid as check_sum ,
 		lead(False::boolean,1,True::boolean) over( partition by dim_agreement_natural_key_hash_uuid,
 		ref_requirement_type_natural_key_hash_uuid,
-		requirement_case_id order by begin_dtm)::boolean current_row_ind ,
+		requirement_case_id order by begin_dtm,hist_rnk)::boolean current_row_ind ,
 		lead(begin_dt - interval '1' day,1,'12-31-9999'::date) over( partition by dim_agreement_natural_key_hash_uuid,
 		ref_requirement_type_natural_key_hash_uuid,
-		requirement_case_id order by begin_dtm)::date end_dt ,
+		requirement_case_id order by begin_dtm,hist_rnk)::date end_dt ,
 		lead(begin_dtm - interval '1' second,1,'12-31-9999'::timestamp(6)) over( partition by dim_agreement_natural_key_hash_uuid,
 		ref_requirement_type_natural_key_hash_uuid,
-		requirement_case_id order by begin_dtm)::timestamp(6) end_dtm ,
+		requirement_case_id order by begin_dtm,hist_rnk)::timestamp(6) end_dtm ,
 		source_system_id ,
 		restricted_row_ind ,
 		update_audit_id ,
@@ -279,14 +260,15 @@ from
 			current_timestamp(6) as ROW_PROCESS_DTM,
 			:audit_id as AUDIT_ID,
 			False::boolean as LOGICAL_DELETE_IND,
-			True::boolean as CURRENT_ROW_IND,
+			--True::boolean as CURRENT_ROW_IND,
 			--'12-31-9999'::date as end_dt ,
 			--'12-31-9999'::timestamp(6) as end_dtm ,
 			'32' as source_system_id ,
 			False::boolean as restricted_row_ind ,
 			:audit_id as update_audit_id ,
 			False::boolean as source_delete_ind,
-			'I' as operator_ind
+			'I' as operator_ind,
+			hist.rnk as hist_rnk
 		from
 			edw_staging.tpp_edw_tpp_requirements src
 		left outer join edw.dim_agreement da 
@@ -318,7 +300,7 @@ from
 					AND UPPER(SRC_FLD_NM) = 'REQT_CAT_CD'
 						AND UPPER(TRNSLT_FLD_NM) = 'REQUIREMENT CATEGORY' ) SDT_1 ON
 			CLEAN_STRING(src.requirement_category) = CLEAN_STRING(SDT_1.SRC_FLD_VAL)
-			
+
 		LEFT JOIN temp_tpp_edw_tpp_requirement_history_snapshot hist
 		on src.policy_number=hist.policy_number
 		and src.case_id=hist.case_id 
@@ -358,14 +340,18 @@ from
 		) t2 where rnk1=1
 	)t3
 where
-	rnk = 1;
+	rnk = 1  
+and (DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
+             REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
+             REQUIREMENT_CASE_ID,requirement_status_cde) not in (select DIM_AGREEMENT_NATURAL_KEY_HASH_UUID,
+             REF_REQUIREMENT_TYPE_NATURAL_KEY_HASH_UUID,
+             REQUIREMENT_CASE_ID,requirement_status_cde
+             from edw.rel_agreement_nb_requirement  where source_system_id in ('32', '347'));--8min
 	
-
 commit;
 
 SELECT ANALYZE_STATISTICS('edw_staging.party_tpp_rel_agreement_nb_requirement_pre_work');
 	
-
 /* WORK TABLE - INSERTS 
  * this script is used to load the records that don't have a record in target */
 INSERT /*+DIRECT*/ 
@@ -444,7 +430,7 @@ commit;
 * The current record in the target will be ended since the source record will be inserted in the next step */
 	
 	INSERT /*+DIRECT*/ 
-	into edw_work.party_tpp_rel_agreement_nb_requirement (
+	into  edw_work.party_tpp_rel_agreement_nb_requirement(
 	dim_agreement_natural_key_hash_uuid ,
 	ref_requirement_type_natural_key_hash_uuid ,
 	requirement_case_id ,
