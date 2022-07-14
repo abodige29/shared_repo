@@ -27,10 +27,10 @@ SELECT
 ,COALESCE(CLEAN_STRING(CARR_ADMIN_SYS_CD),'Unk')                                AS AGREEMENT_SOURCE_CDE
 ,CLEAN_STRING('APPL')	                                                        AS AGREEMENT_TYPE_CDE
 ,AGMT_ISS_DT::DATE                                                              AS ISSUE_DT
-,AGMT_STUS_DT::TIMESTAMP(6)                                                     AS application_status_dtm
-,APPL_SUBM_DT::TIMESTAMP(6)                                                     AS application_submit_dtm
-,APPL_SIGND_DT::TIMESTAMP(6)                                                    AS application_signed_dtm
-,APPL_RCV_DT::TIMESTAMP(6)                                                      AS application_received_dtm
+,AGMT_STUS_DT::DATE                                                             AS AGREEMENT_STATUS_DT
+,APPL_SUBM_DT::DATE                                                             AS APPLICATION_SUBMIT_DT
+,APPL_SIGND_DT::DATE                                                            AS APPLICATION_SIGNED_DT
+,APPL_RCV_DT::DATE                                                              AS APPLICATION_RECEIVED_DT
 ,CLEAN_STRING(APPL_TYP)	                                                        AS APPLICATION_TYPE_CDE
 ,CLEAN_STRING(REPL_TYP)	                                                        AS REPLACEMENT_TYPE_CDE
 ,CLEAN_STRING('NB')                                                             AS AGREEMENT_STATUS_CDE
@@ -39,18 +39,18 @@ SELECT
 ,CLEAN_STRING(SRC_AGMT_STUS_CD)                                                 AS SOURCE_AGREEMENT_STATUS_REASON_CDE
 ,CAS_ID::VARCHAR    	                                                        AS APPLICATION_CASE_ID
 ,CLEAN_STRING(AGMT_FRM)	                                                        AS AGREEMENT_FORM_CDE
-,AGMT_INIT_DT::TIMESTAMP(6)                                                     AS application_initial_dtm
-,APPL_ADE_DT::TIMESTAMP(6)                                                      AS application_data_entry_dtm
-,APPL_APPV_DT::TIMESTAMP(6)                                                     AS application_approval_dtm
-,APPL_DCLN_DT::TIMESTAMP(6)                                                     AS application_declined_dtm
-,APPL_OFFR_DT::TIMESTAMP(6)                                                     AS application_offered_dtm
-,APPL_ISS_DT::TIMESTAMP(6)                                                      AS application_issue_dtm
-,APPL_INCMP_DT::TIMESTAMP(6)                                                    AS application_incomplete_dtm
-,APPL_WDRW_DT::TIMESTAMP(6)                                                     AS application_withdrawal_dtm
-,APPL_NOT_TAKEN_DT::TIMESTAMP(6)                                                AS application_not_taken_dtm
-,APPL_RPT_DT::TIMESTAMP(6)                                                      AS application_report_dtm
-,APPL_DLV_DT::TIMESTAMP(6)                                                      AS application_delivery_dtm
-,APPL_FREE_LK_DT::TIMESTAMP(6)                                                  AS application_free_look_dtm
+,AGMT_INIT_DT::DATE                                                             AS AGREEMENT_INITIAL_DT
+,APPL_ADE_DT::DATE                                                              AS APPLICATION_DATA_ENTRY_DT
+,APPL_APPV_DT::DATE                                                             AS APPLICATION_APPROVAL_DT
+,APPL_DCLN_DT::DATE                                                             AS APPLICATION_DECLINED_DT
+,APPL_OFFR_DT::DATE                                                             AS APPLICATION_OFFERED_DT
+,APPL_ISS_DT::DATE                                                              AS APPLICATION_ISSUE_DT
+,APPL_INCMP_DT::DATE	                                                        AS APPLICATION_INCOMPLETE_DT
+,APPL_WDRW_DT::DATE                                                             AS APPLICATION_WITHDRAWAL_DT
+,APPL_NOT_TAKEN_DT::DATE                                                        AS APPLICATION_NOT_TAKEN_DT
+,APPL_RPT_DT::DATE                                                              AS APPLICATION_REPORT_DT
+,APPL_DLV_DT::DATE                                                              AS APPLICATION_DELIVERY_DT
+,APPL_FREE_LK_DT::DATE	                                                        AS APPLICATION_FREE_LOOK_DT
 ,SRC_APPL_SIGN_ST                                                               AS SOURCE_APPLICATION_SIGNED_STATE_CDE
 ,CLEAN_STRING(APPL_SIGN_ST)                                                     AS APPLICATION_SIGNED_STATE_CDE	
 ,CLEAN_STRING(E_SIGN_IND)                                                       AS ELECTRONIC_SIGNED_CDE
@@ -71,10 +71,10 @@ SELECT
 ,CLEAN_STRING(UWRT_TYP)	                                                        AS UNDERWRITING_TYPE_CDE
 ,CLEAN_STRING(POL_STUS_BY)                                                      AS POLICY_STATUS_BY_USER_TXT
 ,CLEAN_STRING(SRC_AGMT_FRM)                                                     AS SOURCE_AGREEMENT_FORM_CDE
-,GRP_INFO_STRT_DT::TIMESTAMP(6)                                                 AS application_group_information_start_dtm
+,GRP_INFO_STRT_DT::DATE	                                                        AS APPLICATION_GROUP_INFORMATION_START_DT
 ,CLEAN_STRING(RJCT_RSN_CD)                                                      AS REJECTED_REASON_CDE
-,APPL_INIT_RVW_STRT_DT::TIMESTAMP(6)                                            AS application_initial_reviewed_start_dtm
-,APPL_INIT_RVW_END_DT::TIMESTAMP(6)                                             AS application_initial_reviewed_end_dtm
+,APPL_INIT_RVW_STRT_DT::DATE	                                                AS INITIAL_REVIEWED_START_DT
+,APPL_INIT_RVW_END_DT::DATE                                                     AS INITIAL_REVIEWED_END_DT
 ,CLEAN_STRING(FLUIDLESS_IND)::BOOLEAN	                                        AS FLUIDLESS_IND
 ,CLEAN_STRING(SRC_ST_CD)                                                        AS SOURCE_AGREEMENT_STATE_CDE
 ,CLEAN_STRING(AGMT_ST)	                                                        AS AGREEMENT_STATE_CDE
@@ -153,10 +153,10 @@ SELECT * FROM
 	,AGREEMENT_SOURCE_CDE
 	,AGREEMENT_TYPE_CDE
 	,ISSUE_DT
-	,application_status_dtm
-	,application_submit_dtm
-	,application_signed_dtm
-	,application_received_dtm
+	,AGREEMENT_STATUS_DT
+	,APPLICATION_SUBMIT_DT
+	,APPLICATION_SIGNED_DT
+	,APPLICATION_RECEIVED_DT
 	,APPLICATION_TYPE_CDE
 	,REPLACEMENT_TYPE_CDE
 	,AGREEMENT_STATUS_CDE
@@ -165,18 +165,18 @@ SELECT * FROM
 	,SOURCE_AGREEMENT_STATUS_REASON_CDE
 	,APPLICATION_CASE_ID
 	,AGREEMENT_FORM_CDE
-	,application_initial_dtm
-	,application_data_entry_dtm
-	,application_approval_dtm
-	,application_declined_dtm
-	,application_offered_dtm
-	,application_issue_dtm
-	,application_incomplete_dtm
-	,application_withdrawal_dtm
-	,application_not_taken_dtm
-	,application_report_dtm
-	,application_delivery_dtm
-	,application_free_look_dtm
+	,AGREEMENT_INITIAL_DT
+	,APPLICATION_DATA_ENTRY_DT
+	,APPLICATION_APPROVAL_DT
+	,APPLICATION_DECLINED_DT
+	,APPLICATION_OFFERED_DT
+	,APPLICATION_ISSUE_DT
+	,APPLICATION_INCOMPLETE_DT
+	,APPLICATION_WITHDRAWAL_DT
+	,APPLICATION_NOT_TAKEN_DT
+	,APPLICATION_REPORT_DT
+	,APPLICATION_DELIVERY_DT
+	,APPLICATION_FREE_LOOK_DT
 	,SOURCE_APPLICATION_SIGNED_STATE_CDE
 	,APPLICATION_SIGNED_STATE_CDE	
 	,ELECTRONIC_SIGNED_CDE
@@ -197,10 +197,10 @@ SELECT * FROM
 	,UNDERWRITING_TYPE_CDE
 	,POLICY_STATUS_BY_USER_TXT
 	,SOURCE_AGREEMENT_FORM_CDE
-	,application_group_information_start_dtm
+	,APPLICATION_GROUP_INFORMATION_START_DT
 	,REJECTED_REASON_CDE
-	,application_initial_reviewed_start_dtm
-	,application_initial_reviewed_end_dtm
+	,INITIAL_REVIEWED_START_DT
+	,INITIAL_REVIEWED_END_DT
 	,FLUIDLESS_IND
 	,SOURCE_AGREEMENT_STATE_CDE
 	,AGREEMENT_STATE_CDE
@@ -225,13 +225,13 @@ SELECT * FROM
 ORDER BY AGREEMENT_SOURCE_CDE,AGREEMENT_TYPE_CDE,AGREEMENT_NR_PFX,AGREEMENT_NR_SFX, APPLICATION_CASE_ID,AGREEMENT_NR,DIM_AGREEMENT_NATURAL_KEY_HASH_UUID;
 
 UPDATE FULL_DIM_AGREEMENT
-SET CHECK_SUM=UUID_GEN(SOURCE_DELETE_IND,ISSUE_DT,application_status_dtm,application_submit_dtm,application_signed_dtm,application_received_dtm,APPLICATION_TYPE_CDE,REPLACEMENT_TYPE_CDE
-	,AGREEMENT_STATUS_CDE,SOURCE_AGREEMENT_STATUS_CDE,AGREEMENT_STATUS_REASON_CDE,SOURCE_AGREEMENT_STATUS_REASON_CDE,AGREEMENT_FORM_CDE,application_initial_dtm,application_data_entry_dtm
-	,application_approval_dtm,application_declined_dtm,application_offered_dtm,application_issue_dtm,application_incomplete_dtm,application_withdrawal_dtm,application_not_taken_dtm,application_report_dtm
-	,application_delivery_dtm,application_free_look_dtm,SOURCE_APPLICATION_SIGNED_STATE_CDE,APPLICATION_SIGNED_STATE_CDE,ELECTRONIC_SIGNED_CDE,PREPAID_IND,UNDERWRITTING_IND,TOTAL_RISK_AMT
+SET CHECK_SUM=UUID_GEN(SOURCE_DELETE_IND,ISSUE_DT,AGREEMENT_STATUS_DT,APPLICATION_SUBMIT_DT,APPLICATION_SIGNED_DT,APPLICATION_RECEIVED_DT,APPLICATION_TYPE_CDE,REPLACEMENT_TYPE_CDE
+	,AGREEMENT_STATUS_CDE,SOURCE_AGREEMENT_STATUS_CDE,AGREEMENT_STATUS_REASON_CDE,SOURCE_AGREEMENT_STATUS_REASON_CDE,AGREEMENT_FORM_CDE,AGREEMENT_INITIAL_DT,APPLICATION_DATA_ENTRY_DT
+	,APPLICATION_APPROVAL_DT,APPLICATION_DECLINED_DT,APPLICATION_OFFERED_DT,APPLICATION_ISSUE_DT,APPLICATION_INCOMPLETE_DT,APPLICATION_WITHDRAWAL_DT,APPLICATION_NOT_TAKEN_DT,APPLICATION_REPORT_DT
+	,APPLICATION_DELIVERY_DT,APPLICATION_FREE_LOOK_DT,SOURCE_APPLICATION_SIGNED_STATE_CDE,APPLICATION_SIGNED_STATE_CDE,ELECTRONIC_SIGNED_CDE,PREPAID_IND,UNDERWRITTING_IND,TOTAL_RISK_AMT
 	,SOLICITING_AGENCY_DIM_PARTY_NATURAL_KEY_HASH_UUID::VARCHAR,EASY_APPLICATION_IND,TOP_BLUE_IND,BROKERAGE_IND,OWNER_ALIKE_INSURED_IND,PAYEE_ALIKE_INSURED_OR_OWNER_CDE,DESIGNATION_LANGUAGE_TXT
 	,SOURCE_APPLICATION_TYPE_CDE,SOURCE_PRODUCT_SHORT_NM,REPORT_PLACEMENT_STATUS_CDE,REPORT_INVENTORY_STATUS_CDE,UNDERWRITING_TYPE_CDE,POLICY_STATUS_BY_USER_TXT,SOURCE_AGREEMENT_FORM_CDE
-	,application_group_information_start_dtm,REJECTED_REASON_CDE,application_initial_reviewed_start_dtm,application_initial_reviewed_end_dtm,FLUIDLESS_IND,SOURCE_AGREEMENT_STATE_CDE,AGREEMENT_STATE_CDE,APPLICATION_RISK_CLASS_CDE
+	,APPLICATION_GROUP_INFORMATION_START_DT,REJECTED_REASON_CDE,INITIAL_REVIEWED_START_DT,INITIAL_REVIEWED_END_DT,FLUIDLESS_IND,SOURCE_AGREEMENT_STATE_CDE,AGREEMENT_STATE_CDE,APPLICATION_RISK_CLASS_CDE
 	,REPLACEMENT_IND,APPLICATION_GROUP_NR,SPLIT_CONTRACT_IND,PRODUCT_CDE)::UUID;
 
 COMMIT;
@@ -272,10 +272,10 @@ INSERT /*+direct*/ INTO EDW_WORK.PARTY_WINRISK_DIM_AGREEMENT
 ,AGREEMENT_SOURCE_CDE
 ,AGREEMENT_TYPE_CDE
 ,ISSUE_DT
-,application_status_dtm
-,application_submit_dtm
-,application_signed_dtm
-,application_received_dtm
+,AGREEMENT_STATUS_DT
+,APPLICATION_SUBMIT_DT
+,APPLICATION_SIGNED_DT
+,APPLICATION_RECEIVED_DT
 ,APPLICATION_TYPE_CDE
 ,REPLACEMENT_TYPE_CDE
 ,AGREEMENT_STATUS_CDE
@@ -284,18 +284,18 @@ INSERT /*+direct*/ INTO EDW_WORK.PARTY_WINRISK_DIM_AGREEMENT
 ,SOURCE_AGREEMENT_STATUS_REASON_CDE
 ,APPLICATION_CASE_ID
 ,AGREEMENT_FORM_CDE
-,application_initial_dtm
-,application_data_entry_dtm
-,application_approval_dtm
-,application_declined_dtm
-,application_offered_dtm
-,application_issue_dtm
-,application_incomplete_dtm
-,application_withdrawal_dtm
-,application_not_taken_dtm
-,application_report_dtm
-,application_delivery_dtm
-,application_free_look_dtm
+,AGREEMENT_INITIAL_DT
+,APPLICATION_DATA_ENTRY_DT
+,APPLICATION_APPROVAL_DT
+,APPLICATION_DECLINED_DT
+,APPLICATION_OFFERED_DT
+,APPLICATION_ISSUE_DT
+,APPLICATION_INCOMPLETE_DT
+,APPLICATION_WITHDRAWAL_DT
+,APPLICATION_NOT_TAKEN_DT
+,APPLICATION_REPORT_DT
+,APPLICATION_DELIVERY_DT
+,APPLICATION_FREE_LOOK_DT
 ,SOURCE_APPLICATION_SIGNED_STATE_CDE
 ,APPLICATION_SIGNED_STATE_CDE	
 ,ELECTRONIC_SIGNED_CDE
@@ -316,10 +316,10 @@ INSERT /*+direct*/ INTO EDW_WORK.PARTY_WINRISK_DIM_AGREEMENT
 ,UNDERWRITING_TYPE_CDE
 ,POLICY_STATUS_BY_USER_TXT
 ,SOURCE_AGREEMENT_FORM_CDE
-,application_group_information_start_dtm
+,APPLICATION_GROUP_INFORMATION_START_DT
 ,REJECTED_REASON_CDE
-,application_initial_reviewed_start_dtm
-,application_initial_reviewed_end_dtm
+,INITIAL_REVIEWED_START_DT
+,INITIAL_REVIEWED_END_DT
 ,FLUIDLESS_IND
 ,SOURCE_AGREEMENT_STATE_CDE
 ,AGREEMENT_STATE_CDE
@@ -350,10 +350,10 @@ SELECT
 ,A.AGREEMENT_SOURCE_CDE
 ,A.AGREEMENT_TYPE_CDE
 ,A.ISSUE_DT
-,A.application_status_dtm
-,A.application_submit_dtm
-,A.application_signed_dtm
-,A.application_received_dtm
+,A.AGREEMENT_STATUS_DT
+,A.APPLICATION_SUBMIT_DT
+,A.APPLICATION_SIGNED_DT
+,A.APPLICATION_RECEIVED_DT
 ,A.APPLICATION_TYPE_CDE
 ,A.REPLACEMENT_TYPE_CDE
 ,A.AGREEMENT_STATUS_CDE
@@ -362,18 +362,18 @@ SELECT
 ,A.SOURCE_AGREEMENT_STATUS_REASON_CDE
 ,A.APPLICATION_CASE_ID
 ,A.AGREEMENT_FORM_CDE
-,A.application_initial_dtm
-,A.application_data_entry_dtm
-,A.application_approval_dtm
-,A.application_declined_dtm
-,A.application_offered_dtm
-,A.application_issue_dtm
-,A.application_incomplete_dtm
-,A.application_withdrawal_dtm
-,A.application_not_taken_dtm
-,A.application_report_dtm
-,A.application_delivery_dtm
-,A.application_free_look_dtm
+,A.AGREEMENT_INITIAL_DT
+,A.APPLICATION_DATA_ENTRY_DT
+,A.APPLICATION_APPROVAL_DT
+,A.APPLICATION_DECLINED_DT
+,A.APPLICATION_OFFERED_DT
+,A.APPLICATION_ISSUE_DT
+,A.APPLICATION_INCOMPLETE_DT
+,A.APPLICATION_WITHDRAWAL_DT
+,A.APPLICATION_NOT_TAKEN_DT
+,A.APPLICATION_REPORT_DT
+,A.APPLICATION_DELIVERY_DT
+,A.APPLICATION_FREE_LOOK_DT
 ,A.SOURCE_APPLICATION_SIGNED_STATE_CDE
 ,A.APPLICATION_SIGNED_STATE_CDE	
 ,A.ELECTRONIC_SIGNED_CDE
@@ -394,10 +394,10 @@ SELECT
 ,A.UNDERWRITING_TYPE_CDE
 ,A.POLICY_STATUS_BY_USER_TXT
 ,A.SOURCE_AGREEMENT_FORM_CDE
-,A.application_group_information_start_dtm
+,A.APPLICATION_GROUP_INFORMATION_START_DT
 ,A.REJECTED_REASON_CDE
-,A.application_initial_reviewed_start_dtm
-,A.application_initial_reviewed_end_dtm
+,A.INITIAL_REVIEWED_START_DT
+,A.INITIAL_REVIEWED_END_DT
 ,A.FLUIDLESS_IND
 ,A.SOURCE_AGREEMENT_STATE_CDE
 ,A.AGREEMENT_STATE_CDE
@@ -450,10 +450,10 @@ INSERT /*+direct*/ INTO EDW.DIM_AGREEMENT
 ,AGREEMENT_SOURCE_CDE
 ,AGREEMENT_TYPE_CDE
 ,ISSUE_DT
-,application_status_dtm
-,application_submit_dtm
-,application_signed_dtm
-,application_received_dtm
+,AGREEMENT_STATUS_DT
+,APPLICATION_SUBMIT_DT
+,APPLICATION_SIGNED_DT
+,APPLICATION_RECEIVED_DT
 ,APPLICATION_TYPE_CDE
 ,REPLACEMENT_TYPE_CDE
 ,AGREEMENT_STATUS_CDE
@@ -462,18 +462,18 @@ INSERT /*+direct*/ INTO EDW.DIM_AGREEMENT
 ,SOURCE_AGREEMENT_STATUS_REASON_CDE
 ,APPLICATION_CASE_ID
 ,AGREEMENT_FORM_CDE
-,application_initial_dtm
-,application_data_entry_dtm
-,application_approval_dtm
-,application_declined_dtm
-,application_offered_dtm
-,application_issue_dtm
-,application_incomplete_dtm
-,application_withdrawal_dtm
-,application_not_taken_dtm
-,application_report_dtm
-,application_delivery_dtm
-,application_free_look_dtm
+,AGREEMENT_INITIAL_DT
+,APPLICATION_DATA_ENTRY_DT
+,APPLICATION_APPROVAL_DT
+,APPLICATION_DECLINED_DT
+,APPLICATION_OFFERED_DT
+,APPLICATION_ISSUE_DT
+,APPLICATION_INCOMPLETE_DT
+,APPLICATION_WITHDRAWAL_DT
+,APPLICATION_NOT_TAKEN_DT
+,APPLICATION_REPORT_DT
+,APPLICATION_DELIVERY_DT
+,APPLICATION_FREE_LOOK_DT
 ,SOURCE_APPLICATION_SIGNED_STATE_CDE
 ,APPLICATION_SIGNED_STATE_CDE	
 ,ELECTRONIC_SIGNED_CDE
@@ -494,10 +494,10 @@ INSERT /*+direct*/ INTO EDW.DIM_AGREEMENT
 ,UNDERWRITING_TYPE_CDE
 ,POLICY_STATUS_BY_USER_TXT
 ,SOURCE_AGREEMENT_FORM_CDE
-,application_group_information_start_dtm
+,APPLICATION_GROUP_INFORMATION_START_DT
 ,REJECTED_REASON_CDE
-,application_initial_reviewed_start_dtm
-,application_initial_reviewed_end_dtm
+,INITIAL_REVIEWED_START_DT
+,INITIAL_REVIEWED_END_DT
 ,FLUIDLESS_IND
 ,SOURCE_AGREEMENT_STATE_CDE
 ,AGREEMENT_STATE_CDE
@@ -528,10 +528,10 @@ SELECT
 ,AGREEMENT_SOURCE_CDE
 ,AGREEMENT_TYPE_CDE
 ,ISSUE_DT
-,application_status_dtm
-,application_submit_dtm
-,application_signed_dtm
-,application_received_dtm
+,AGREEMENT_STATUS_DT
+,APPLICATION_SUBMIT_DT
+,APPLICATION_SIGNED_DT
+,APPLICATION_RECEIVED_DT
 ,APPLICATION_TYPE_CDE
 ,REPLACEMENT_TYPE_CDE
 ,AGREEMENT_STATUS_CDE
@@ -540,18 +540,18 @@ SELECT
 ,SOURCE_AGREEMENT_STATUS_REASON_CDE
 ,APPLICATION_CASE_ID
 ,AGREEMENT_FORM_CDE
-,application_initial_dtm
-,application_data_entry_dtm
-,application_approval_dtm
-,application_declined_dtm
-,application_offered_dtm
-,application_issue_dtm
-,application_incomplete_dtm
-,application_withdrawal_dtm
-,application_not_taken_dtm
-,application_report_dtm
-,application_delivery_dtm
-,application_free_look_dtm
+,AGREEMENT_INITIAL_DT
+,APPLICATION_DATA_ENTRY_DT
+,APPLICATION_APPROVAL_DT
+,APPLICATION_DECLINED_DT
+,APPLICATION_OFFERED_DT
+,APPLICATION_ISSUE_DT
+,APPLICATION_INCOMPLETE_DT
+,APPLICATION_WITHDRAWAL_DT
+,APPLICATION_NOT_TAKEN_DT
+,APPLICATION_REPORT_DT
+,APPLICATION_DELIVERY_DT
+,APPLICATION_FREE_LOOK_DT
 ,SOURCE_APPLICATION_SIGNED_STATE_CDE
 ,APPLICATION_SIGNED_STATE_CDE	
 ,ELECTRONIC_SIGNED_CDE
@@ -572,10 +572,10 @@ SELECT
 ,UNDERWRITING_TYPE_CDE
 ,POLICY_STATUS_BY_USER_TXT
 ,SOURCE_AGREEMENT_FORM_CDE
-,application_group_information_start_dtm
+,APPLICATION_GROUP_INFORMATION_START_DT
 ,REJECTED_REASON_CDE
-,application_initial_reviewed_start_dtm
-,application_initial_reviewed_end_dtm
+,INITIAL_REVIEWED_START_DT
+,INITIAL_REVIEWED_END_DT
 ,FLUIDLESS_IND
 ,SOURCE_AGREEMENT_STATE_CDE
 ,AGREEMENT_STATE_CDE
